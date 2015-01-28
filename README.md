@@ -63,7 +63,7 @@ In the 'error' query parameter.
 
 
 ###Example Request
-http://beta.eyewire.org/oauth2/1.0/auth?response_type=code&redirect_uri=http://website.com&client_id=141
+https://beta.eyewire.org/oauth2/1.0/auth?response_type=code&redirect_uri=http://website.com&client_id=141
 
 ###Example Response
 http://website.com/?code=f9u12m12e9we
@@ -98,7 +98,7 @@ Returns an access code given an auth code. One time use, the auth code is invali
 
 ###Example Request
 
-http://beta.eyewire.org/oauth2/1.0/exchange?auth_code=f9u12m12e9we&redirect_uri=http://website.com&client_id=141&secret=1234&grant_type=authorization_code
+https://beta.eyewire.org/oauth2/1.0/exchange?auth_code=f9u12m12e9we&redirect_uri=http://website.com&client_id=141&secret=1234&grant_type=authorization_code
 
 ###Example Response
 
@@ -141,7 +141,7 @@ The response contains volume objects that contain ids and bounds which are used 
 
 ###Example Request
 
-http://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
+https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
 
 ###Example Response
 
@@ -208,7 +208,7 @@ Submit a validation for a task. The validation is used to calculate a consensus 
 None, is this correct?
 
 ###Example Request
-http://beta.eyewire.org/2.0/tasks/530321/save?access_token=d14fa82ab88beb6e36fb9f88fa95fed4402a5779&status=finished&segments=170,224,306,296
+https://beta.eyewire.org/2.0/tasks/530321/save?access_token=d14fa82ab88beb6e36fb9f88fa95fed4402a5779&status=finished&segments=170,224,306,296
 
 ###Example Response
 
