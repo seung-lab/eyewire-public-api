@@ -12,18 +12,56 @@ The EyeWire REST API provides programmatic access to interact with EyeWire's dat
 - Oauth2 - [open standard for authorization](http://oauth.net/2/). We support only three-legged authentication. See [our Oauth2 implementation](#oauth2) for more details.
 - access token - a string that identifies an EyeWire account and client application.
 
-###EyeWire
-- cell: a neuron, tree structure consisting of several *tasks*, the root task is in most cases a part of the cell body
-- task: a *volume* with *seeds*; associated with a cell
-- volume: the EyeWire dataset consists of 256^3 voxel large cubes, overlapping each other by 32 voxels. The volumes are further divided into 128^3 large *chunks*, hence an EyeWire volume has 8 chunks. However, each volume actually has two volume IDs - one for the channel images, one for the segmentation images
-- seeds: initial *segments* players are supposed to follow and add additional segments that match.
-- segment: region of similar looking, connected voxels, each segment has a unique identifier for its containing volume.
-- chunk: contains layers of 2D images:
-- channel: 8bpp greyscale .jpg files containing the electron microscope images.
-- segmentation: .png files, used to describe which pixels belong to which segment ID. (The RGBA color represents the segment ID: R + 256*G + 256^2 * B + 256^3 * A)
-- validation: a *task* with a list of additional *segments*, for example submitted by a single user.
-- consensus: a special *validation*, subset of the union of all validations for a single *task*.
-- subspace: used for gathering cell overview meshes, which has a different subdivision. Size of those subspaces depends on the user-specified MIP-level: 2 * 128^mip; Other than _volumes_ they don't overlap.
+###EyeWire Structure & Terminology
+#####The Dataset
+The EyeWire dataset comprises pairs of .jpg from which we can map a 3D volume. EyeWire calls these images a `channel` and a `segmentation`. The images are grouped into `chunks`, which are then grouped into `volumes`.
+
+- `channel`
+    - an 8bpp greyscale .jpg file
+    - the electron microscope images
+- `segmentation`
+    - a .png file
+    - used to describe which pixels belong to which `segment` ID
+    - The RGBA color represents the `segment` ID: R + 256*G + 256^2 * B + 256^3 * A
+- `volume`
+    - a 256^3 voxel cube
+    - each `volume` overlaps its adjacent `volumes` by 32 voxels
+    - a `volume` comprises 128^3 voxel `chunks` (an EyeWire `volume` contains 8 `chunks`)
+    - each `volume` contains two sets of data: `channel` images and `segmentation` images
+- `chunk`
+    - a set of 2D images inside a `volume`
+    - there are 8 `chunks` in each `volume`
+
+#####Playing Eyewire (interacting with the dataset)
+When a user plays EyeWire they see the `channel` images and a 3D representation of the current `cell` they are attempting to map. This `cell` is located inside a specific `volume` and `chunk` (think of it like an address). The starting point of the `cell` the user is mapping is called a `seed`. There may be multiple `seeds` when a user begins mapping. 
+
+Providing the user with `seeds` for a `cell` is called assigning the player a `task`. As the user maps, they select `segments` they believe are attached to the `seeds`. When the user is done mapping the `task`, the `segments` the user selected are added to the task and create  a `validation`.
+
+- `task`
+    - a `volume` with `seeds`
+    - associated with a `cell`
+- `cell` 
+    * a neuron
+    * a tree structure consisting of several `tasks`
+    * the root `task` is usually part of the cell body
+- `seeds`
+    - the pre-highlighted `segments` visible when a player begins a task
+    - players click on `segments` to attach them to the `seed`
+- `segment`: 
+    - an area of apparently similar voxels
+    - each `segment` has a unique identifier for its containing `volume`
+- `validation`
+    - a `task` with a list of additional `segments`
+    - for example, a user starts playing EyeWire and receives a `task`. The user then highlights `segments` she believes are part of the `cell` that the initial `seeds` are part of. The resulting `task` is returned as a `validation`
+- `consensus`
+    - a special `validation`
+    - a subset of the union of all `validations` for a single `task`
+    
+#####Special things
+- `subspace`
+    - used for gathering cell overview meshes, which uses different subdivision
+    - the size of a `subspace` depends on the user-specified MIP-level: 2 * 128^mip
+    - Other than `volumes` they don't overlap
 
 #Oauth2
 
