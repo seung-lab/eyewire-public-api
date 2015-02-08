@@ -1,6 +1,7 @@
 #Eyewire Public API - WIP
-- This is a draft, the api is available to try at https://beta.eyewire.org
+This is a draft, the api is available to try at https://beta.eyewire.org
 
+# Table of Contents
 <!-- MarkdownTOC autolink=true bracket=round -->
 
 - [Overview](#overview)
