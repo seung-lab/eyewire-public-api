@@ -1,26 +1,26 @@
 #Eyewire Public API - WIP
 - This is a draft, the api is available to try at https://beta.eyewire.org
 
-<!-- MarkdownTOC autolink=true -->
+<!-- MarkdownTOC autolink=true bracket=round -->
 
-- [Overview][overview]
-- [Defintions][defintions]
-- [EyeWire Structure & Terminology][eyewire-structure--terminology]
-  - [The Dataset][the-dataset]
-  - [Playing Eyewire (interacting with the dataset)][playing-eyewire-interacting-with-the-dataset]
-  - [Special things][special-things]
-- [Oauth2][oauth2]
-  - [Registering an application][registering-an-application]
-  - [Getting access tokens][getting-access-tokens]
-  - [GET oauth2/1.0/auth][get-oauth210auth]
-  - [POST oauth2/1.0/exchange][post-oauth210exchange]
-- [Tasks][tasks]
-  - [POST 2.0/tasks/assign][post-20tasksassign]
-  - [POST 2.0/tasks/:id/save][post-20tasksidsave]
-- [Data][data]
-- [Response Objects][response-objects]
-  - [Volume Object][volume-object]
-  - [Bounds Object][bounds-object]
+- [Overview](#overview)
+- [Defintions](#defintions)
+- [EyeWire Structure & Terminology](#eyewire-structure--terminology)
+  - [The Dataset](#the-dataset)
+  - [Playing Eyewire (interacting with the dataset)](#playing-eyewire-interacting-with-the-dataset)
+  - [Special things](#special-things)
+- [Oauth2](#oauth2)
+  - [Registering an application](#registering-an-application)
+  - [Getting access tokens](#getting-access-tokens)
+  - [GET oauth2/1.0/auth](#get-oauth210auth)
+  - [POST oauth2/1.0/exchange](#post-oauth210exchange)
+- [Tasks](#tasks)
+  - [POST 2.0/tasks/assign](#post-20tasksassign)
+  - [POST 2.0/tasks/:id/save](#post-20tasksidsave)
+- [Data](#data)
+- [Response Objects](#response-objects)
+  - [Volume Object](#volume-object)
+  - [Bounds Object](#bounds-object)
 
 <!-- /MarkdownTOC -->
 
