@@ -32,7 +32,7 @@ This is a draft, the api is available to try at https://beta.eyewire.org
 
 The EyeWire REST API provides programmatic access to interact with EyeWire's data. The key api interactions are [assigning tasks](#post-20tasksassign) and [submitting validations](#post-20tasksidsave). Assignments and submissions must have an associated user account and application id. That information is passed to the api as an Oauth2 access token query parameter.
 
-# Defintions
+# Definitions
 - Oauth2 - [open standard for authorization](http://oauth.net/2/). We support only three-legged authentication. See [our Oauth2 implementation](#oauth2) for more details.
 - access token - a string that identifies an EyeWire account and client application.
 
@@ -47,40 +47,43 @@ The EyeWire dataset comprises pairs of .jpg from which we can map a 3D volume. E
     - a .png file
     - used to describe which pixels belong to which `segment` ID
     - The RGBA color represents the `segment` ID: R + 256*G + 256^2 * B + 256^3 * A
+  `voxel`
+      the highest precision of the dataset. Can be considered a 1x1x1 pixel cube.
 - `volume`
     - a 256^3 voxel cube
     - each `volume` overlaps its adjacent `volumes` by 32 voxels
-    - a `volume` comprises 128^3 voxel `chunks` (an EyeWire `volume` contains 8 `chunks`)
-    - each `volume` contains two sets of data: `channel` images and `segmentation` images
+    - a `volume` is comprised of 2x2x2 voxel `chunks`
 - `chunk`
+    - a 128^3 voxel cube
     - a set of 2D images inside a `volume`
     - there are 8 `chunks` in each `volume`
+    - each `chunk` contains two sets of data: `channel` images and `segmentation` images
+    - a chunk contains 128 images for each of the three axis 'xy', 'yz', 'xz'
 
-## Playing Eyewire (interacting with the dataset)
-When a user plays EyeWire they see the `channel` images and a 3D representation of the current `cell` they are attempting to map. This `cell` is located inside a specific `volume` and `chunk` (think of it like an address). The starting point of the `cell` the user is mapping is called a `seed`. There may be multiple `seeds` when a user begins mapping. 
+## Playing EyeWire (interacting with the dataset)
+When a user plays EyeWire they see the `channel` images and a 3D representation of the current `cell` they are attempting to map. This `cell` is located inside a specific `volume` and `chunk` (think of it like an address). The starting point of the `cell` the user is mapping is called a `seed`. There may be multiple `seeds` when a user begins mapping.
 
 Providing the user with `seeds` for a `cell` is called assigning the player a `task`. As the user maps, they select `segments` they believe are attached to the `seeds`. When the user is done mapping the `task`, the `segments` the user selected are added to the task and create  a `validation`.
 
 - `task`
     - a `volume` with `seeds`
     - associated with a `cell`
-- `cell` 
-    * a neuron
-    * a tree structure consisting of several `tasks`
-    * the root `task` is usually part of the cell body
+- `cell`
+    - a neuron
+    - a tree structure consisting of several `tasks`
+    - the root `task` is usually part of the cell body
 - `seeds`
     - the pre-highlighted `segments` visible when a player begins a task
-    - players click on `segments` to attach them to the `seed`
-- `segment`: 
-    - an area of apparently similar voxels
+    - players select `segments` to group them with the `seeds`
+- `segment`:
+    - an group connected voxels that the EyeWire AI determined as belonging to the same cell
     - each `segment` has a unique identifier for its containing `volume`
 - `validation`
     - a `task` with a list of additional `segments`
     - for example, a user starts playing EyeWire and receives a `task`. The user then highlights `segments` she believes are part of the `cell` that the initial `seeds` are part of. The resulting `task` is returned as a `validation`
 - `consensus`
-    - a special `validation`
-    - a subset of the union of all `validations` for a single `task`
-    
+    - the current set of segments that are believed to belong a task based on user submitted validations
+
 ## Special things
 - `subspace`
     - used for gathering cell overview meshes, which uses different subdivision
