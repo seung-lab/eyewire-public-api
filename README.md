@@ -407,18 +407,18 @@ http://data.eyewire.org/volume/17096/chunk/0/1/1/0/mesh/2060
 ### Example Response
 ```
 0x0000: v1 vn1
-0x0008: v2 vn2
-0x0010: v3 vn3	# first triangle (1, 2, 3) complete
-0x0018: v4 vn4	# second triangle (2, 3, 4) complete
-0x0020: v5 vn5  # third triangle (3, 4, 5) complete
+0x0018: v2 vn2
+0x0030: v3 vn3	# first triangle (1, 2, 3) complete
+0x0048: v4 vn4	# second triangle (2, 3, 4) complete
+0x0060: v5 vn5  # third triangle (3, 4, 5) complete
 .
 .
 .
 ```
-
 * All values are Little Endian, 4 Byte `floats`.
 * v1 is the first vertex coordinate.
 * vn1 is the first vertex normal.
+* A vertex consists of three `floats` representing its X,Y,Z coordinates, in the given order.
 * Vertex Coordinates are within the range [0 .. 1]
 * Vertex Normals are normalized.
 
