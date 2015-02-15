@@ -197,9 +197,13 @@ The response contains volume objects that contain ids and bounds which are used 
 |:----------------|:------------------------------------|
 | id              | task id                             |
 | seeds           | array of segment ids known to be part of the cell.               |
-| cell | the cell that the task belongs to |
-| channel      | channel [volume object](#volume-object)      |
-| segmentation | segmentation [volume object](#volume-object) |
+| status          | One of the following: <br/> <ul><li>0: NORMAL</li><li>3: TUTORIAL</li><li>6: STASHED (not visible in overview</li><li>10: FROZEN (unplayable)</li><li>11: DUPLICATE (all or part of this cube duplicates with another cube in a different cell)</li></ul>|
+| created         | The date and time when the task was created |
+| cell            | the ID of the cell that the task belongs to |
+| channel_id      | ID of the channel volume |
+| segmentation_id | ID of the segmentation volume |
+| channel         | channel [volume object](#volume-object)      |
+| segmentation    | segmentation [volume object](#volume-object) |
 
 ### Error Responses
 - 404 - no tasks available that fulfill the request, try with a different cell_id or lack of one.
@@ -212,38 +216,81 @@ https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
 
 ```json
 {
-  "id": 17444,
-  "seeds": [245, 5025, 6500],
-  "cell": 10,
+  "id": 558593,
+  "seeds": [ 491 ],
+  "status": 0,
+  "created": "2015-01-29T21:18:32.000Z",
+  "cell": 693,
+  "channel_id": 79285,
+  "segmentation_id": 79286,
+  "depth": 33,
+  "right_edge": 1444600,
+  "left_edge": 1444593,
+  "confidence": 1,
+  "underconfidence": 1,
+  "enabled": 1,
+  "weightsum": 0,
+  "lastmodified": "2015-02-04T21:26:28.000Z",
+  "flagged": 0,
+  "complete": 1,
+  "inspected_weight": 1,
+  "notes": "",
+  "completion_votes": 1000000,
   "channel": {
-    "id": 63200,
+    "uri": "/usr/local/omni/data/omelette2/x09/y59/x09y59z21_s2259_13491_4915_e2514_13746_5170.omni.files/",
     "bounds": {
       "min": {
-        "x": 2930,
-        "y": 4082,
-        "z": 6482
+        "x": 2258,
+        "y": 13490,
+        "z": 4914
       },
       "max": {
-        "x": 3186,
-        "y": 4338,
-        "z": 6738
+        "x": 2514,
+        "y": 13746,
+        "z": 5170
       }
-    }
+    },
+    "resolution": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "type": 5,
+    "chunkDims": {
+      "x": 128,
+      "y": 128,
+      "z": 128
+    },
+    "vol_type": 1,
+    "mipLevel": 0
   },
-  "segmentation":{
-    "id": 63201,
+  "segmentation": {
+    "uri": "/usr/local/omni/data/omelette2/x09/y59/x09y59z21_s2259_13491_4915_e2514_13746_5170.omni.files/",
     "bounds": {
       "min": {
-        "x": 2930,
-        "y": 4082,
-        "z": 6482
+        "x": 2258,
+        "y": 13490,
+        "z": 4914
       },
       "max": {
-        "x": 3186,
-        "y": 4338,
-        "z": 6738
+        "x": 2514,
+        "y": 13746,
+        "z": 5170
       }
-    }
+    },
+    "resolution": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "type": 4,
+    "chunkDims": {
+      "x": 128,
+      "y": 128,
+      "z": 128
+    },
+    "vol_type": 2,
+    "mipLevel": 0
   }
 }
 ```
