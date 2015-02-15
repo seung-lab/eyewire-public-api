@@ -428,22 +428,45 @@ http://data.eyewire.org/volume/17096/chunk/0/1/1/0/mesh/2060
 # Response Objects
 
 ## Volume Object
-Contains an volume id and a [bounds object](#bounds-object). The bounds represents the area of space that the volume occupies.
+| Name            | Description                           |
+|:----------------|:--------------------------------------|
+| uri             | Path to file on server |
+| bounds          | [bounds object](#bounds-object)  |
+| resolution      | Always 1 for each dimension |
+| type            | One of the following: <ul><li>1: Signed Byte (-128 - 127)</li><li>2: Byte (0 - 255)</li><li>3: INT32 (signed 32-bit integer)</li><li>4: UINT32 (unsigned 32-bit integer, used for .png segmentation images)</li><li>5: FLOAT (used for .jpg channel images)</ul> |
+| chunkDims       | The size in voxels for each dimension of the chunk |
+| vol_type        | One of the following: <ul><li>1: Channel</li><li>2: Segmentation</li></ul> |
+| miplevel        | The MIP level of the images, always 0 |
 
 ### Example
 ```json
-"id": 63200,
-"bounds": {
-  "min": {
-    "x": 2930,
-    "y": 4082,
-    "z": 6482
+{
+  "uri": "/usr/local/omni/data/omelette2/x09/y59/x09y59z21_s2259_13491_4915_e2514_13746_5170.omni.files/",
+  "bounds": {
+    "min": {
+      "x": 2258,
+      "y": 13490,
+      "z": 4914
+    },
+    "max": {
+      "x": 2514,
+      "y": 13746,
+      "z": 5170
+    }
   },
-  "max": {
-    "x": 3186,
-    "y": 4338,
-    "z": 6738
-  }
+  "resolution": {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "type": 5,
+  "chunkDims": {
+    "x": 128,
+    "y": 128,
+    "z": 128
+  },
+  "vol_type": 1,
+  "mipLevel": 0
 }
 ```
 
