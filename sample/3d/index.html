@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+	<script src="Bbox.js"></script>
+	<script src="jquery.binaryrequest.js"></script>
+	<script src="THREESegment.js"></script>
+</head>
+<body>
+	<button id="playButton">Play</button><br/>
+	<button id="submitTask">Submit</button><br/>
+
+	<canvas id="channelCanvas" width="256" height="256"></canvas>
+	<canvas id="segCanvas" width="256" height="256"></canvas>
+	<canvas id="bufferCanvas" width="128" height="128"></canvas>
+
+	<div id="3dContainer"></div>
+
+	<div id="assignedTask"></div>
+	Selected:<div id="selected"></div>
+	Results:<div id="results"></div><br/>
+	Use the j and k keys to change the displayed tile.
+
+
+</body>
+<script src="main.js"></script>
+</html>
