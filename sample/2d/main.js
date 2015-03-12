@@ -16,13 +16,13 @@ var CHUNK_SIZE = 128;
 ///////////////////////////////////////////////////////////////////////////////
 /// assignment and submission
 $('#playButton').click(function () {
-  $.post('http://beta.eyewire.org/2.0/tasks/assign').done(playTask);
+  $.post('http://beta.eyewire.org/2.0/tasks/testassign').done(playTask);
 });
 
 $('#submitTask').click(function () {
-  var url = 'http://beta.eyewire.org/2.0/tasks/' + assignedTask.id + '/save?status=finished&segments=' + assignedTask.selected.join();
-  $.post(url).done(function (res) {
-    $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer)
+  var url = 'http://beta.eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
+  $.post(url, 'status=finished&segments=' + assignedTask.selected.join()).done(function (res) {
+    $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer);
   });
 });
 
@@ -48,7 +48,7 @@ function recenterDim(dim, callback) {
   var bounds = new Bbox(assignedTask.channel.bounds);
   var center = bounds.getCenter();
 
-  $.post('http://data.eyewire.org/volume/' + assignedTask.segmentation_id + '/segment/merge_metadata', {
+  $.post('http://data.eyewire.org/volume/' + assignedTask.segmentation.id + '/segment/merge_metadata', {
     segments: assignedTask.seeds
   }, function (data) {
     if ((data.bbox.min[dim] - bounds.min[dim]) < (bounds.max[dim] - data.bbox.max[dim])) {
@@ -75,8 +75,8 @@ function loadTilesForAxis(axis, callback) {
     var y = i % 4 > 1 ? 1 : 0;
     var z = i < 4 ? 0 : 1;
 
-    getImagesForVolXY(assignedTask.channel_id, x, y, z, axis, 'channel', callback);
-    getImagesForVolXY(assignedTask.segmentation_id, x, y, z, axis, 'segmentation', callback);
+    getImagesForVolXY(assignedTask.channel.id, x, y, z, axis, 'channel', callback);
+    getImagesForVolXY(assignedTask.segmentation.id, x, y, z, axis, 'segmentation', callback);
   };
 }
 
