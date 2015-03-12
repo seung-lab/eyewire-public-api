@@ -44,9 +44,9 @@ The EyeWire dataset comprises pairs of .jpg and .png images from which we can ma
     - a set of 8bpp greyscale .jpg files
     - the electron microscope images
 - `segmentation`
-    - a set of 24bpp RGB .png files for normal `tasks` or 32bpp RGBA .png files for omni `tasks`
+    - a set of 24bpp RGB .png files for normal `tasks`
     - used to describe which pixels belong to which `segment` ID
-    - The RGBA color represents the `segment` ID: R + 256*G + 256^2 * B + 256^3 * A. The alpha channel is excluded in non-omni `tasks`.
+    - The RGB color represents the `segment` ID: R + 256*G + 256^2 * B 
 - `voxel` 
     - The highest precision of the dataset. Can be considered a 1x1x1 pixel cube.
 - `volume`
@@ -295,7 +295,7 @@ https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
 }
 ```
 
-## POST 2.0/tasks/:id/save
+## POST 2.0/tasks/:id/submit
 
 Submit a validation for a task. The validation is used to calculate a consensus of the segments that belong to the task. The validation will be analyzed for accuracy and given a suggested score.
 
