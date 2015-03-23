@@ -11,11 +11,13 @@
 	<button id="playButton">Play</button><br/>
 	<button id="submitTask">Submit</button><br/>
 
-	<canvas id="channelCanvas" width="256" height="256"></canvas>
-	<canvas id="segCanvas" width="256" height="256"></canvas>
-	<canvas id="bufferCanvas" width="128" height="128"></canvas>
+	<div id="loadingText" style="font-size: 24px; display: none;">Loading </div>
 
-	<div id="3dContainer"></div>
+	<canvas id="channelCanvas" style="display: none;" width="256" height="256"></canvas>
+	<canvas id="segCanvas" style="display: none;"  width="256" height="256"></canvas>
+	<canvas id="bufferCanvas" style="display: none;"  width="128" height="128"></canvas>
+
+	<div id="3dContainer" style="display: none;"></div>
 
 	<div id="assignedTask"></div>
 	Selected:<div id="selected"></div>
@@ -24,5 +26,6 @@
 
 
 </body>
+<script src="../common.js"></script>
 <script src="main.js"></script>
 </html>

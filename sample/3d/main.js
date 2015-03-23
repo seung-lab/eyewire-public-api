@@ -1,104 +1,107 @@
 var channelCanvas = document.getElementById("channelCanvas");
-channelCanvas.onselectstart = function () { return false; };
-var channelContext = channelCanvas.getContext("2d");
-
 var segCanvas = document.getElementById("segCanvas");
-var segContext = segCanvas.getContext("2d");
-
 var bufferCanvas = document.getElementById("bufferCanvas");
-var bufferContext = bufferCanvas.getContext("2d");
 
-var currentTile, assignedTask;
-var tiles = {};
+// prevents dragging the 2d view
+channelCanvas.onselectstart = function () { return false; };
 
-var meshes = {};
+setContexts(
+  channelCanvas.getContext("2d"),
+  segCanvas.getContext("2d"),
+  bufferCanvas.getContext("2d")
+);
 
-var CHUNK_SIZE = 128;
+var currentTile;
 
-///////////////////////////////////////////////////////////////////////////////
-/// assignment and submission
-$('#playButton').click(function () {
-  $.post('http://beta.eyewire.org/2.0/tasks/testassign').done(playTask);
-});
+function waitForAll(asyncFunctions, done) {
+  var count = asyncFunctions.length;
 
-$('#submitTask').click(function () {
-  var url = 'http://beta.eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
-  $.post(url, 'status=finished&segments=' + assignedTask.selected.join()).done(function (res) {
-    $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer);
+  var mydone = done;
+
+  asyncFunctions.forEach(function (f) {
+    f(function () {
+      count--;
+
+      if (count === 0) {
+        mydone();
+      }
+    });
   });
-});
+}
 
-function playTask(task) {
-  tiles = {};
-  assignedTask = task;
-  assignedTask.selected = [];
-
-  for (var i = 0; i < task.seeds.length; i++) {
-    var segId = task.seeds[i];
-    displayMeshForVolumeAndSegId(task.segmentation.id, segId);
-  };
+function loadTiles(done) {
+  var tileCount = 0;
 
   // use z as the vertical axis and load tiles for the xy axis
   recenterDim('z', function () {
     loadTilesForAxis('xy', function (tile) {
+      tileCount++;
+
       if (tile.id === currentTile) {
         tile.draw();
+      }
+
+      if (tileCount === 256) {
+        done();
       }
     });
 
     ThreeDViewRender();
   });
-};
-
-// recenterDim sets the starting tile for a task.
-// it gets a bounding box for the seed pieces using the merge_metadata endpoint
-// and calculates a tile correlating to the edge of the bounding box closest to the edge of the task
-function recenterDim(dim, callback) {
-  var bounds = new Bbox(assignedTask.channel.bounds);
-  var center = bounds.getCenter();
-
-  $.post('http://data.eyewire.org/volume/' + assignedTask.segmentation.id + '/segment/merge_metadata', {
-    segments: assignedTask.seeds
-  }, function (data) {
-    if ((data.bbox.min[dim] - bounds.min[dim]) < (bounds.max[dim] - data.bbox.max[dim])) {
-      center[dim] = Math.max(data.bbox.min[dim] + 2, bounds.min[dim] + 2);
-    }
-    else {
-      center[dim] = Math.min(data.bbox.max[dim] - 2, bounds.max[dim] - 2);
-    }
-
-    currentTile = center[dim] - bounds.min[dim];
-    callback();
-  }, 'json');
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// loading data
-function loadTilesForAxis(axis, callback) {
-  for (var i = 0; i < 256; i++) {
-    tiles[i] = new Tile(i);
-  }
-
-  for (var i = 0; i < 8; i++) {
-    var x = i % 2;
-    var y = i % 4 > 1 ? 1 : 0;
-    var z = i < 4 ? 0 : 1;
-
-    getImagesForVolXY(assignedTask.channel.id, x, y, z, axis, 'channel', callback);
-    getImagesForVolXY(assignedTask.segmentation.id, x, y, z, axis, 'segmentation', callback);
-  };
 }
 
-function getImagesForVolXY(volId, x, y, z, axis, type, callback) {
-  var url = "http://data.eyewire.org/volume/" + volId + "/chunk/0/" + x + "/" + y + "/" + z + "/tile/" + axis + "/" + 0 + ":" + CHUNK_SIZE;
-  $.get(url).done(function (tilesRes) {
-    for (var trIdx = 0; trIdx < tilesRes.length; trIdx++) {
-      var realTileNum = z * CHUNK_SIZE + trIdx;
-
-      tiles[realTileNum].load(tilesRes[trIdx].data, type, x, y, callback);
-    };
+function loadSeedMeshes(done) {
+  var seedsLoaded = 0;
+  assignedTask.seeds.forEach(function (segId) {
+    displayMeshForVolumeAndSegId(assignedTask.segmentation_id, segId, function () {
+      seedsLoaded++;
+      if (seedsLoaded === assignedTask.seeds.length) {
+        done();
+      }
+    });
   });
-};
+}
+
+function loadTaskData(done) {
+  waitForAll([
+    loadTiles,
+    loadSeedMeshes
+  ], done);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// buttons, assignment and submission
+$('#playButton').click(function () {
+
+  $.post('https://beta.eyewire.org/2.0/tasks/testassign').done(function (task) {
+    setTask(task);
+
+    console.log('loaded');
+
+    $('#loadingText').show();
+
+    var loadingIndicator = setInterval(function () {
+      $('#loadingText').html($('#loadingText').html() + '.');
+    }, 2000);
+
+    loadTaskData(function () {
+      console.log('we are done loading!');
+
+      clearInterval(loadingIndicator);
+      $('#loadingText').hide();
+
+      $('#channelCanvas').show();
+      $('#3dContainer').show();
+    });
+  });
+});
+
+$('#submitTask').click(function () {
+  var url = 'https://beta.eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
+  $.post(url, 'status=finished&segments=' + assignedTask.selected.join()).done(function (res) {
+    $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer);
+  });
+});
 
 ///////////////////////////////////////////////////////////////////////////////
 /// interacting with task
@@ -109,8 +112,8 @@ $(document).keypress(function(e) {
     currentTile += 1;
   }
 
-  currentTile = clamp(currentTile, 1, 254)
-  tiles[currentTile].draw();
+  currentTile = clamp(currentTile, 1, 254);
+  assignedTask.tiles[currentTile].draw();
 });
 
 $(channelCanvas).click(function (e) {
@@ -118,183 +121,15 @@ $(channelCanvas).click(function (e) {
   var relX = e.pageX - parentOffset.left;
   var relY = e.pageY - parentOffset.top;
 
-  var segId = tiles[currentTile].segIdForPosition(relX, relY); // TODO, need to separate current displayed vs requested
-
-  if (segId === 0) { // is it a segment border
-    return;
-  }
-
-  var selectedIdx = assignedTask.selected.indexOf(segId);
-  var seedsIdx = assignedTask.seeds.indexOf(segId);
-
-  if (selectedIdx === -1) { // is it not selected
-    if (seedsIdx === -1) { // and not a seed
-      assignedTask.selected.push(segId); // select it
-      displayMeshForVolumeAndSegId(assignedTask.segmentation.id, segId);
-    }
-  } else {
-    assignedTask.selected.splice(selectedIdx, 1); // unselect it
-    THREEDViewRemoveSegment(segId);
-  }
-
-  $('#selected').html(assignedTask.selected.join());
-  tiles[currentTile].draw();
+  var segId = assignedTask.tiles[currentTile].segIdForPosition(relX, relY); // TODO, need to separate current displayed vs requested
+  toggleSegId(segId);
 });
-
-///////////////////////////////////////////////////////////////////////////////
-/// utils
-function clamp(val, min, max) {
-  return Math.max(Math.min(val, max), min);
-};
-
-function rgbEqual(rgb1, rgb2) {
-  return rgb1[0] === rgb2[0] && rgb1[1] === rgb2[1] && rgb1[2] === rgb2[2];
-};
-
-function rgbToSegId(rgb) {
-  return rgb[0] + rgb[1] * 256 + rgb[2] * 256 * 256;
-};
-
-function segIdToRGB(segId) {
-  var blue = Math.floor(segId / (256 * 256));
-  var green = Math.floor((segId % (256 * 256)) / 256);
-  var red = segId % 256;
-
-  return [red, green, blue];
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// classes
-function Tile(id) {
-  this.id = id;
-  this.count = 0;
-  this.segmentation = {};
-  this.channel = {};
-};
-
-Tile.prototype.isComplete = function () {
-  this.count === 8; // 4 channel, 4 segmentation
-};
-
-function convertBase64ImgToImage(b64String, callback) {
-  var imageBuffer = new Image();
-
-  imageBuffer.onload = function () {
-    callback(this);
-  };
-
-  imageBuffer.src = b64String;
-};
-
-Tile.prototype.load = function (data, type, x, y, callback) {
-  var _this = this;
-
-  convertBase64ImgToImage(data, function (image) {
-    // process image
-    bufferContext.drawImage(image, 0, 0);
-    _this[type][y * 2 + x] = bufferContext.getImageData(0, 0, CHUNK_SIZE, CHUNK_SIZE);
-    _this.count++;
-
-    if (_this.count === 8) { // all tiles have been loaded
-      callback(_this);
-    }
-  });
-};
-
-Tile.prototype.draw = function () {
-  for (var i = 0; i < 4; i++) {
-    var x = i % 2;
-    var y = i < 2 ? 0 : 1;
-
-    if (this.count < 8) {
-      console.error('we are low on count!', this.count);
-    }
-
-    var segData = this.segmentation[i];
-    var targetData = this.channel[i];
-
-    channelContext.putImageData(
-      highlight(targetData, segData),
-      x * CHUNK_SIZE,
-      y * CHUNK_SIZE
-    );
-
-    segContext.putImageData(
-      highlight(segData, segData),
-      x * CHUNK_SIZE,
-      y * CHUNK_SIZE
-    );
-  };
-};
-
-Tile.prototype.segIdForPosition = function(x, y) {
-  var chunkX = Math.floor(x / CHUNK_SIZE);
-  var chunkY = Math.floor(y / CHUNK_SIZE);
-  var chunkRelX = x % CHUNK_SIZE;
-  var chunkRelY = y % CHUNK_SIZE;
-  var data = this.segmentation[chunkY * 2 + chunkX].data;
-  var start = (chunkRelY * CHUNK_SIZE + chunkRelX) * 4;
-  var rgb = [data[start], data[start+1], data[start+2]];
-  return rgbToSegId(rgb);
-};
-
-// highlight the seeds and selected segments in the tile 2d view
-function highlight(targetData, segData) {
-  var copy = bufferContext.createImageData(CHUNK_SIZE, CHUNK_SIZE);
-  copy.data.set(targetData.data);
-
-  var copyPixels = copy.data;
-  var segPixels = segData.data;
-
-  var selectedColors = assignedTask.selected.map(segIdToRGB);
-  var seedColors = assignedTask.seeds.map(segIdToRGB);
-
-  function getColor(buffer, startIndex) {
-    return [buffer[startIndex], buffer[startIndex+1], buffer[startIndex+2]];
-  };
-
-  function setColor(buffer, startIndex, rgb) {
-    buffer[startIndex] = rgb[0];
-    buffer[startIndex + 1] = rgb[1];
-    buffer[startIndex + 2] = rgb[2];
-  };
-
-  for (var j = 0; j < segPixels.length; j += 4) {
-    var rgb = getColor(segPixels, j);
-
-    for (var k = 0; k < seedColors.length; k += 1) {
-      if (rgbEqual(seedColors[k], rgb)) {
-        setColor(copyPixels, j, [0, 0, 255]);
-      };
-    };
-
-    for (var k = 0; k < selectedColors.length; k += 1) {
-      if (rgbEqual(selectedColors[k], rgb)) {
-        setColor(copyPixels, j, [0, 255, 0]);
-      };
-    };
-  };
-
-  return copy;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 3d code
+
+var meshes = {};
 
 var renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -349,26 +184,19 @@ function ThreeDViewRender() {
 function ThreeDViewAddSegment(segId) {
   segments.add(meshes[segId]);
   ThreeDViewRender();
-};
+}
 
 function THREEDViewRemoveSegment(segId) {
   segments.remove(meshes[segId]);
   ThreeDViewRender();
-};
-
-function isSeed(segId) {
-  return assignedTask.seeds.indexOf(segId) !== -1;
-}
-
-function isSelected(segId) {
-  return assignedTask.selected.indexOf(segId) !== -1
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// loading mesh data
-function displayMeshForVolumeAndSegId(volume, segId) {
+function displayMeshForVolumeAndSegId(volume, segId, done) {
   if (meshes[segId]) {
     ThreeDViewAddSegment(segId);
+    if (done) { done(); }
   } else {
     var segmentMesh = new THREE.Object3D();
     meshes[segId] = segmentMesh;
@@ -390,15 +218,17 @@ function displayMeshForVolumeAndSegId(volume, segId) {
           if (isSelected(segId) || isSeed(segId)) {
             ThreeDViewAddSegment(segId);
           }
+
+          if (done) { done(); }
         }
       });
-    };
+    }
   }
-};
+}
 
 function getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, callback) {
-  $.binaryGet('http://data.eyewire.org/volume/' + volume + '/chunk/0/'+ x + '/' + y + '/' + z + '/mesh/' + segId,
-  function (data, error) {
+  var meshUrl = 'http://data.eyewire.org/volume/' + volume + '/chunk/0/'+ x + '/' + y + '/' + z + '/mesh/' + segId;
+  $.binaryGet(meshUrl, function (data, error) {
     if (data) {
       var mesh = new THREE.Segment(
         new Float32Array(data),
@@ -409,7 +239,7 @@ function getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, callback) {
 
       callback(mesh);
     } else {
-      console.log('No mesh for ', volume, segId)
+      console.log('No mesh for ', volume, segId);
     }
   });
-};
+}
