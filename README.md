@@ -38,17 +38,17 @@ The EyeWire REST API provides programmatic access to interact with EyeWire's dat
 
 # EyeWire Structure & Terminology
 ## The Dataset
-The EyeWire dataset comprises pairs of .jpg from which we can map a 3D volume. EyeWire calls these images a `channel` and a `segmentation`. The images are grouped into `chunks`, which are then grouped into `volumes`.
+The EyeWire dataset comprises pairs of .jpg and .png images from which we can map a 3D volume. EyeWire calls the sets of .jpg images `channels` and the sets of .png images `segmentations`. The sets are grouped into `chunks`, which are then grouped into `volumes`.
 
 - `channel`
-    - an 8bpp greyscale .jpg file
+    - a set of 8bpp greyscale .jpg files
     - the electron microscope images
 - `segmentation`
-    - a .png file
+    - a set of 24bpp RGB .png files for normal `tasks`
     - used to describe which pixels belong to which `segment` ID
-    - The RGBA color represents the `segment` ID: R + 256*G + 256^2 * B + 256^3 * A
-  `voxel`
-      the highest precision of the dataset. Can be considered a 1x1x1 pixel cube.
+    - The RGB color represents the `segment` ID: R + 256*G + 256^2 * B 
+- `voxel` 
+    - The highest precision of the dataset. Can be considered a 1x1x1 pixel cube.
 - `volume`
     - a 256^3 voxel cube
     - each `volume` overlaps its adjacent `volumes` by 32 voxels
@@ -61,7 +61,7 @@ The EyeWire dataset comprises pairs of .jpg from which we can map a 3D volume. E
     - a chunk contains 128 images for each of the three axis 'xy', 'yz', 'xz'
 
 ## Playing EyeWire (interacting with the dataset)
-When a user plays EyeWire they see the `channel` images and a 3D representation of the current `cell` they are attempting to map. This `cell` is located inside a specific `volume` and `chunk` (think of it like an address). The starting point of the `cell` the user is mapping is called a `seed`. There may be multiple `seeds` when a user begins mapping.
+When a user plays EyeWire they see the `channel` images and a 3D representation of a part of the current `cell` they are attempting to map. This part is located inside a specific `volume` and `chunk` (think of it like an address). The starting point of the part the user is mapping is called a `seed`. There may be multiple `seeds` when a user begins mapping.
 
 Providing the user with `seeds` for a `cell` is called assigning the player a `task`. As the user maps, they select `segments` they believe are attached to the `seeds`. When the user is done mapping the `task`, the `segments` the user selected are added to the task and create  a `validation`.
 
@@ -76,13 +76,13 @@ Providing the user with `seeds` for a `cell` is called assigning the player a `t
     - the pre-highlighted `segments` visible when a player begins a task
     - players select `segments` to group them with the `seeds`
 - `segment`:
-    - an group connected voxels that the EyeWire AI determined as belonging to the same cell
+    - a group of connected voxels that the EyeWire AI determined as belonging to a single branch of a cell
     - each `segment` has a unique identifier for its containing `volume`
 - `validation`
     - a `task` with a list of additional `segments`
-    - for example, a user starts playing EyeWire and receives a `task`. The user then highlights `segments` she believes are part of the `cell` that the initial `seeds` are part of. The resulting `task` is returned as a `validation`
+    - for example, a user starts playing EyeWire and receives a `task`. The user then highlights `segments` s/he believes are part of the `cell` that the initial `seeds` are part of. The resulting `task` is returned as a `validation`
 - `consensus`
-    - the current set of segments that are believed to belong a task based on user submitted validations
+    - the current set of `segments` that are believed to belong to a `task` based on user submitted `validations`
 
 ## Special things
 - `subspace`
@@ -92,7 +92,7 @@ Providing the user with `seeds` for a `cell` is called assigning the player a `t
 
 # Oauth2
 
-We use Oauth2 to allow EyeWire player's to share access to their account with your applications.To get an Oauth2 access token you must register an application.
+We use Oauth2 to allow EyeWire player's to share access to their account with your applications. To get an Oauth2 access token you must register an application.
 
 ## Registering an application
 An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens.
@@ -197,7 +197,7 @@ The response contains volume objects that contain ids and bounds which are used 
 |:----------------|:------------------------------------|
 | id              | task id                             |
 | seeds           | array of segment ids known to be part of the cell.               |
-| cell | the cell that the task belongs to |
+| cell | the ID of the cell that the task belongs to |
 | channel      | channel [volume object](#volume-object)      |
 | segmentation | segmentation [volume object](#volume-object) |
 
@@ -248,7 +248,7 @@ https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
 }
 ```
 
-## POST 2.0/tasks/:id/save
+## POST 2.0/tasks/:id/submit
 
 Submit a validation for a task. The validation is used to calculate a consensus of the segments that belong to the task. The validation will be analyzed for accuracy and given a suggested score.
 
@@ -360,18 +360,18 @@ http://data.eyewire.org/volume/17096/chunk/0/1/1/0/mesh/2060
 ### Example Response
 ```
 0x0000: v1 vn1
-0x0008: v2 vn2
-0x0010: v3 vn3	# first triangle (1, 2, 3) complete
-0x0018: v4 vn4	# second triangle (2, 3, 4) complete
-0x0020: v5 vn5  # third triangle (3, 4, 5) complete
+0x0018: v2 vn2
+0x0030: v3 vn3	# first triangle (1, 2, 3) complete
+0x0048: v4 vn4	# second triangle (2, 3, 4) complete
+0x0060: v5 vn5  # third triangle (3, 4, 5) complete
 .
 .
 .
 ```
-
 * All values are Little Endian, 4 Byte `floats`.
 * v1 is the first vertex coordinate.
 * vn1 is the first vertex normal.
+* A vertex consists of three `floats` representing its X,Y,Z coordinates, in the given order.
 * Vertex Coordinates are within the range [0 .. 1]
 * Vertex Normals are normalized.
 
@@ -381,7 +381,10 @@ http://data.eyewire.org/volume/17096/chunk/0/1/1/0/mesh/2060
 # Response Objects
 
 ## Volume Object
-Contains an volume id and a [bounds object](#bounds-object). The bounds represents the area of space that the volume occupies.
+| Name            | Description                           |
+|:----------------|:--------------------------------------|
+| id | Volume ID |
+| bounds | A [bounds object](#bounds-object), represents the area of space that the volume occupies |
 
 ### Example
 ```json
