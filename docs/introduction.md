@@ -31,9 +31,11 @@ Segment meshes
 
 ### Selecting segments
 
-Players fulfill an assignment by responding with a list of segments (identified by id) that they believe to be part of the neuron.
+A task has a list of segments known as the seed. Players are tasked with finding more segments that belong with the seed. Sometimes the correct answer is none.
 
-In our implementation of EyeWire, players select segments by clicking on the raw image. We match it up with the corresponding segmentation image to determine the segment id (the segment id is encoded in the segmentation image as the color). We then load and display that segment in the 3d view. We allow players to deselect segments in both the 2d and 3d views.
+Players fulfill an assignment by submitting a list of the segments that they believe are associated with the seed. A segment is identified by a numerical id.
+
+In our implementation of EyeWire, players select segments by clicking on the raw 2d image. We match it with the corresponding segmentation image to determine the segment id (the segment id is encoded in the segmentation image as the color). We then load and display that segment in the 3d view. We allow players to deselect segments in both the 2d and 3d views.
 
 ### Submission and results
 
