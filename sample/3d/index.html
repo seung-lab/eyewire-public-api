@@ -4,8 +4,6 @@
 	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
 	<script src="Bbox.js"></script>
-	<script src="jquery.binaryrequest.js"></script>
-	<script src="THREESegment.js"></script>
 </head>
 <body>
 	<button id="playButton">Play</button><br/>
@@ -17,7 +15,7 @@
 	<canvas id="segCanvas" style="display: none;"  width="256" height="256"></canvas>
 	<canvas id="bufferCanvas" style="display: none;"  width="128" height="128"></canvas>
 
-	<div id="3dContainer" style="display: none;"></div>
+	<div id="3dContainer"></div>
 
 	<div id="assignedTask"></div>
 	Selected:<div id="selected"></div>
@@ -26,6 +24,7 @@
 
 
 </body>
+<script src="OBJLoader.js"></script>
 <script src="../common.js"></script>
 <script src="main.js"></script>
 </html>

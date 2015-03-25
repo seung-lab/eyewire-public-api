@@ -2,6 +2,9 @@ var channelCanvas = document.getElementById("channelCanvas");
 var segCanvas = document.getElementById("segCanvas");
 var bufferCanvas = document.getElementById("bufferCanvas");
 
+
+var mouseX = 0, mouseY = 0;
+
 // prevents dragging the 2d view
 channelCanvas.onselectstart = function () { return false; };
 
@@ -144,7 +147,8 @@ renderer.setSize( 500, 500 );
 $('#3dContainer').html(renderer.domElement);
 
 // THREEJS objects
-var scene, camera, light, segments, cube;
+var scene, camera, light, segments, cube, center;
+
 
 function setScene() {
   camera = new THREE.PerspectiveCamera(
@@ -155,7 +159,10 @@ function setScene() {
   );
   camera.position.set(-1, -0.6, -2);
   camera.up.set(0, -1, 0);
-  camera.lookAt(new THREE.Vector3(0,0,0));
+
+  center = new THREE.Vector3(0,0,0);
+
+  camera.lookAt(center);
 
   var _wireframe_material = new THREE.MeshBasicMaterial({
     opacity: 0.1,
@@ -175,9 +182,39 @@ function setScene() {
   cube.add(segments);
   scene.add(light);
   scene.add(camera);
+
+  animate();
 }
 
-function ThreeDViewRender() {
+$("#3dContainer canvas").mousemove(function (e) {
+  var jThis = $(this);
+  var parentOffset = jThis.offset();
+  var relX = e.pageX - parentOffset.left;
+  var relY = e.pageY - parentOffset.top;
+
+  mouseX = relX / jThis.width() - 0.5;
+  mouseY = relY / jThis.height() - 0.5;
+});
+
+function animate() {
+  var dx = (2 * mouseX - camera.position.x) * 0.05;
+  var dy = (2 * mouseY - camera.position.y) * 0.05;
+
+  if (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001) {
+    ThreeDViewRender(dx, dy);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function ThreeDViewRender(dx, dy) {
+  dx = (dx === undefined) ? 0 : dx;
+  dy = (dy === undefined) ? 0 : dy;
+
+  camera.position.x += dx;
+  camera.position.y += dy;
+  camera.lookAt(center);
+
   renderer.render(scene, camera);
 }
 
@@ -226,20 +263,12 @@ function displayMeshForVolumeAndSegId(volume, segId, done) {
   }
 }
 
-function getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, callback) {
-  var meshUrl = 'http://data.eyewire.org/volume/' + volume + '/chunk/0/'+ x + '/' + y + '/' + z + '/mesh/' + segId;
-  $.binaryGet(meshUrl, function (data, error) {
-    if (data) {
-      var mesh = new THREE.Segment(
-        new Float32Array(data),
-        new THREE.MeshPhongMaterial({
-          color: isSeed(segId) ? 'blue' : 'green'
-        })
-      );
+var loader = new THREE.OBJLoader();
 
-      callback(mesh);
-    } else {
-      console.log('No mesh for ', volume, segId);
-    }
+function getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, callback) {
+  var meshUrl = 'https://beta.eyewire.org/2.0/data/mesh/' + volume + '/' + x + '/' + y + '/' + z + '/' + segId;
+
+  loader.load(meshUrl, function (object) {
+    callback(object);
   });
 }
