@@ -16,11 +16,11 @@ EyeWire has to carefully assign tasks to each player to efficiently complete a n
 
 ### Data
 
-When assigned a task, several different data formats become available to help players figure out the ~~underlying~~ structure.
+For an assigned task, several different data formats are available to help players figure out the ~~underlying~~ structure.
 
-EyeWire has 2d and 3d data available. All of our data is constructed from electron microscope images. Our artificial intelligence analyzes the raw images to divide the tissue into smaller pieces called segments that clearly belong to the same neuron. Segments can range drastically in size.
+EyeWire uses both 2d and 3d data. All of our data is constructed from electron microscope images. Our artificial intelligence analyzes the raw images to divide the tissue into smaller pieces called segments that clearly belong to the same neuron. Segments can range drastically in size.
 
-We can access those segments via 2d segmentation images and 3d meshes. The 3d meshes are available in two formats, VAO (efficient memory wise), and Wavefront obj files (ubiquitous and supported by both Unity and Unreal game engines).
+We can view these segments via 2d segmentation images and 3d meshes. The 3d meshes are available in two formats, VAO (efficient memory wise), and Wavefront obj files (ubiquitous and supported by both Unity and Unreal game engines).
 
 Raw image data, also known as channel images (.jpg)
 
@@ -46,7 +46,7 @@ In our implementation of EyeWire, players select segments by clicking on the raw
 
 ### Submission and results
 
-Once a player has finalized their list of segments, it needs to be sent to the EyeWire backend for analysis. The submission interaction returns a suggested score and accuracy given a list of segments.
+Once a player has finalized their list of segments, they can submit the list to the EyeWire backend for analysis. The submission interaction returns an accuracy and suggested score and  given a list of segments.
 
 ### Where to go from here?
 
