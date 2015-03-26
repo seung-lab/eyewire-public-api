@@ -2,13 +2,15 @@
 
 ### What is the EyeWire API?
 
-An API is a specification for communicating between separate computer programs. We created this API so that third parties such as yourselves could create their own EyeWire applications that contribute to mapping the brain. We hope to find new game mechanics that further engage players.
+The EyeWire API is a set of URLs that you can use to gain access to our data and build a game based on our engine. Specificially, it's a set of URLs that respond to GET and POST requests from an HTTP capable client. We created this API in the hope that others might invent new game mechanics that further engage players, and thus increase the rate at which we do science.
 
-### Interacting with the EyeWire API
+### What can you do with it? Specifically.
 
-- Getting an assignment - We assign a small area of neuron to each player when they press the play button.
+If you're familiar with eyewire.org, we make available the following operations:
 
-- Submitting a result - When a player has finished examining the small area, they submit their results so that we can form a consensus and so that they can get feedback.
+- Get a Task: Get assigned a small area of the images that contains a neuron we want to trace.
+
+- Submit an Evaluation: When a player has finished examining the small area, they can submit their evaluation. We combine multiple evaluations into a consensus neuron piece. We'll also provide feedback based primarily on how that player compared to others. We call these evaluations "validations".
 
 ### Receiving an assignment
 
