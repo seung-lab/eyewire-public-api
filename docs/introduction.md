@@ -22,19 +22,42 @@ EyeWire uses both 2d and 3d data. All of our data is constructed from electron m
 
 We can view these segments via 2d segmentation images and 3d meshes. The 3d meshes are available in two formats, VAO (efficient memory wise), and Wavefront obj files (ubiquitous and supported by both Unity and Unreal game engines).
 
-Raw image data, also known as channel images (.jpg)
+#### Raw image data, also known as channel images (.jpg)
 
-PUT IMAGE HERE
+![channel image](/docs/assets/channel_2.png)
 
-Segmentation images (.png)
+#### Segmentation images (.png)
 
-PUT SEGMENTATION IMAGE HERE
+![segmentation image](/docs/assets/segmentation_1.png)
 
-Segment meshes
+##### selecting an additional segment
+
+![segmentation image](/docs/assets/segmentation_2.png)
+
+
+##### calculating segment ids
+
+color (rgb) of the above segment = [67, 2, 0]
+
+![equation](/docs/assets/equation1.png)
+
+Substituting in the color
+
+![equation](/docs/assets/equation2.png)
+
+
+#### Segment meshes
 - VAO (vertices and associated normals)
 - Wavefront .obj (VAO encoded as text)
 
-PUT MESH IMAGE HERE
+![3d view](/docs/assets/3dview_2.png)
+
+
+##### obj model loaded in meshview
+
+![3d modeling program](/docs/assets/meshlab.png)
+
+
 
 ### Selecting segments
 
