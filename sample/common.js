@@ -9,6 +9,17 @@ var bufferContext = null;
 // constants
 var CHUNK_SIZE = 128;
 
+var CHUNKS = [
+  [0,0,0],
+  [0,0,1],
+  [0,1,0],
+  [0,1,1],
+  [1,0,0],
+  [1,0,1],
+  [1,1,0],
+  [1,1,1]
+];
+
 function setContexts(channel, segment, buffer) {
   channelContext = channel;
   segmentContext = segment;
@@ -229,30 +240,25 @@ function recenterDim(dim, callback) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// loading data
+/// loading 2d image data
 function loadTilesForAxis(axis, callback) {
   for (var i = 0; i < 256; i++) {
     assignedTask.tiles[i] = new Tile(i);
   }
 
-  // for every combination of x y and z (2^3)
-  for (var i = 0; i < 8; i++) {
-    var x = i % 2;
-    var y = i % 4 > 1 ? 1 : 0;
-    var z = i < 4 ? 0 : 1;
-
-    getImagesForVolXY(assignedTask.channel_id, x, y, z, axis, 'channel', callback);
-    getImagesForVolXY(assignedTask.segmentation_id, x, y, z, axis, 'segmentation', callback);
-  }
+  CHUNKS.forEach(function(chunk) {
+    getImagesForVolXY(assignedTask.channel_id, chunk, axis, 'channel', callback);
+    getImagesForVolXY(assignedTask.segmentation_id, chunk, axis, 'segmentation', callback);
+  });
 }
 
-function getImagesForVolXY(volId, x, y, z, axis, type, callback) {
-  var url = "http://data.eyewire.org/volume/" + volId + "/chunk/0/" + x + "/" + y + "/" + z + "/tile/" + axis + "/" + 0 + ":" + CHUNK_SIZE;
+function getImagesForVolXY(volId, chunk, axis, type, callback) {
+  var url = "http://data.eyewire.org/volume/" + volId + "/chunk/0/" + chunk[0] + "/" + chunk[1] + "/" + chunk[2] + "/tile/" + axis + "/" + 0 + ":" + CHUNK_SIZE;
   $.get(url).done(function (tilesRes) {
     for (var trIdx = 0; trIdx < tilesRes.length; trIdx++) {
-      var realTileNum = z * CHUNK_SIZE + trIdx;
+      var realTileNum = chunk[2] * CHUNK_SIZE + trIdx;
 
-      assignedTask.tiles[realTileNum].load(tilesRes[trIdx].data, type, x, y, callback);
+      assignedTask.tiles[realTileNum].load(tilesRes[trIdx].data, type, chunk[0], chunk[1], callback);
     }
   });
 }

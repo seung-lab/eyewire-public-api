@@ -334,39 +334,24 @@ THREE.OBJLoader.prototype = {
 
 		}
 
-		var container = new THREE.Object3D();
+		object = objects[ 0 ];
+		geometry = object.geometry;
 
-		for ( var i = 0, l = objects.length; i < l; i ++ ) {
+		var buffergeometry = new THREE.BufferGeometry();
 
-			object = objects[ i ];
-			geometry = object.geometry;
+		buffergeometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
 
-			var buffergeometry = new THREE.BufferGeometry();
+		if ( geometry.normals.length > 0 ) {
+			buffergeometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
+		}
 
-			buffergeometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( geometry.vertices ), 3 ) );
-
-			if ( geometry.normals.length > 0 ) {
-				buffergeometry.addAttribute( 'normal', new THREE.BufferAttribute( new Float32Array( geometry.normals ), 3 ) );
-			}
-
-			if ( geometry.uvs.length > 0 ) {
-				buffergeometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
-			}
-
-			material = new THREE.MeshLambertMaterial();
-			material.name = object.material.name;
-
-			var mesh = new THREE.Mesh( buffergeometry, material );
-			mesh.name = object.name;
-
-			container.add( mesh );
-
+		if ( geometry.uvs.length > 0 ) {
+			buffergeometry.addAttribute( 'uv', new THREE.BufferAttribute( new Float32Array( geometry.uvs ), 2 ) );
 		}
 
 		console.timeEnd( 'OBJLoader' );
 
-		return container;
-
+		return buffergeometry;
 	}
 
 };

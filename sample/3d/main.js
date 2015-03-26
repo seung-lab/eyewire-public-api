@@ -229,7 +229,7 @@ function THREEDViewRemoveSegment(segId) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// loading mesh data
+/// loading 3d mesh data
 function displayMeshForVolumeAndSegId(volume, segId, done) {
   if (meshes[segId]) {
     ThreeDViewAddSegment(segId);
@@ -238,18 +238,13 @@ function displayMeshForVolumeAndSegId(volume, segId, done) {
     var segmentMesh = new THREE.Object3D();
     meshes[segId] = segmentMesh;
 
-    var count = 0;
+    var count = CHUNKS.length;
 
-    for (var i = 0; i < 8; i++) {
-      var x = i % 2;
-      var y = i % 4 < 2 ? 0 : 1;
-      var z = i < 4 ? 0 : 1;
-
-      getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, function (mesh) {
+    CHUNKS.forEach(function(chunk) {
+      getMeshForVolumeXYZAndSegId(volume, chunk, segId, function (mesh) {
         segmentMesh.add(mesh);
-
-        count++;
-        if (count === 8) {
+        count--;
+        if (count === 0) {
           segmentMesh.position.set(-0.5, -0.5, -0.5); // since the vertexes are from 0 to 1, we want to center around 0
 
           if (isSelected(segId) || isSeed(segId)) {
@@ -259,16 +254,20 @@ function displayMeshForVolumeAndSegId(volume, segId, done) {
           if (done) { done(); }
         }
       });
-    }
+    });
   }
 }
 
 var loader = new THREE.OBJLoader();
 
-function getMeshForVolumeXYZAndSegId(volume, x, y, z, segId, callback) {
-  var meshUrl = 'https://beta.eyewire.org/2.0/data/mesh/' + volume + '/' + x + '/' + y + '/' + z + '/' + segId;
+function getMeshForVolumeXYZAndSegId(volume, chunk, segId, done) {
+  var meshUrl = 'https://beta.eyewire.org/2.0/data/mesh/' + volume + '/' + chunk[0] + '/' + chunk[1] + '/' + chunk[2] + '/' + segId;
 
-  loader.load(meshUrl, function (object) {
-    callback(object);
+  loader.load(meshUrl, function (geometry) {
+    var material = new THREE.MeshLambertMaterial({
+      color: isSeed(segId) ? 'blue' : 'green'
+    });
+    var mesh = new THREE.Mesh( geometry, material );
+    done(mesh);
   });
 }
