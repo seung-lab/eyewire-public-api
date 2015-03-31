@@ -18,7 +18,7 @@ EyeWire has to carefully assign tasks to each player to efficiently complete a n
 
 ### Data
 
-For an assigned task, several different data formats are available to help players figure out the ~~underlying~~ structure.
+For an assigned task, several different data formats are available to help players figure out the underlying structure.
 
 EyeWire uses both 2d and 3d data. All of our data is constructed from electron microscope images. Our artificial intelligence analyzes the raw images to divide the tissue into smaller pieces called segments that clearly belong to the same neuron. Segments can range drastically in size.
 
@@ -60,10 +60,9 @@ Substituting in the color
 ![3d modeling program](/docs/assets/meshlab.png)
 
 
-
 ### Selecting segments
 
-A task has a list of segments known as the seed. Players are tasked with finding more segments that belong with the seed. Sometimes the correct answer is none.
+A task has a list of initial segments known as the seed. Players are tasked with finding more segments that belong with the seed. Sometimes the correct answer is none.
 
 Players fulfill an assignment by submitting a list of the segments that they believe are associated with the seed. A segment is identified by a numerical id.
 
@@ -71,7 +70,7 @@ In our implementation of EyeWire, players select segments by clicking on the raw
 
 ### Submission and results
 
-Once a player has finalized their list of segments, they can submit the list to the EyeWire backend for analysis. The submission interaction returns an accuracy and suggested score and  given a list of segments.
+Once a player has finalized their list of segments, they can submit the list to the EyeWire backend for analysis. The submission interaction returns an accuracy and suggested score, given a list of segments.
 
 ### Where to go from here?
 
