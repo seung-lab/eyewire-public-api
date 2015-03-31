@@ -258,16 +258,77 @@ function displayMeshForVolumeAndSegId(volume, segId, done) {
   }
 }
 
+function vertexToObj(x, y, z) {
+	return "v " + x + " " + y + " " + z + " " + '\n';
+}
+
+function normalToObj(x, y, z) {
+	return "vn " + x + " " + y + " " + z + " " + '\n';
+}
+
+function faceToObj(x, y, z) {
+	return "f " + x + "//" + x + " " + y + "//" + y + " " + z + "//" + z + '\n';
+}
+
+function triangleStripToObj(floatArray) {
+
+  function readFloat(i) {
+    return floatArray[i];
+  }
+
+  var obj = "";
+
+	var i = 0;
+
+	obj += vertexToObj(readFloat(i), readFloat(i+1), readFloat(i+2));
+	obj += normalToObj(readFloat(i+3), readFloat(i+4), readFloat(i+5));
+	obj += vertexToObj(readFloat(i+6), readFloat(i+7), readFloat(i+8));
+	obj += normalToObj(readFloat(i+9), readFloat(i+10), readFloat(i+11));
+
+	var first = 1;
+	var second = 2;
+	var third = 3;
+
+	for (i = 12; i + 6 < floatArray.length; i += 6) {
+		obj += vertexToObj(readFloat(i), readFloat(i+1), readFloat(i+2));
+		obj += normalToObj(readFloat(i+3), readFloat(i+4), readFloat(i+5));
+		obj += faceToObj(first, second, third);
+
+		if ((i / 6) % 2 === 0) {
+			first = third;
+		} else {
+			second = third;
+		}
+		third += 1;
+	}
+
+	return obj;
+}
+
 var loader = new THREE.OBJLoader();
 
 function getMeshForVolumeXYZAndSegId(volume, chunk, segId, done) {
-  var meshUrl = 'https://beta.eyewire.org/2.0/data/mesh/' + volume + '/' + chunk[0] + '/' + chunk[1] + '/' + chunk[2] + '/' + segId;
+  var meshUrl = 'http://data.eyewire.org/volume/' + volume + '/chunk/0/'+ chunk[0] + '/' + chunk[1] + '/' + chunk[2] + '/mesh/' + segId;
 
-  loader.load(meshUrl, function (geometry) {
+  var req = new XMLHttpRequest();
+  req.open("GET", meshUrl, true);
+  req.responseType = "arraybuffer";
+
+  req.onload = function (event) {
+    var arrayBuffer = req.response;
+
+    var floatArray = new Float32Array(arrayBuffer);
+
+    var objString = triangleStripToObj(floatArray);
+
+    var geometry = loader.parse(objString);
+
     var material = new THREE.MeshLambertMaterial({
       color: isSeed(segId) ? 'blue' : 'green'
     });
     var mesh = new THREE.Mesh( geometry, material );
     done(mesh);
-  });
+  };
+
+  req.send();
 }

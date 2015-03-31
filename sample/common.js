@@ -193,9 +193,11 @@ function highlight(targetData, segData) {
   }
 
   function setColor(buffer, startIndex, rgb) {
-    buffer[startIndex] = rgb[0];
-    buffer[startIndex + 1] = rgb[1];
-    buffer[startIndex + 2] = rgb[2];
+    overlay = [rgb[0] * 0.5, rgb[1] * 0.5, rgb[2] * 0.5];
+
+    for (i = 0; i < 3; i++) {
+      buffer[startIndex + i] = overlay[i] + buffer[startIndex + i] * 0.5;
+    }
   }
 
   for (var j = 0; j < segPixels.length; j += 4) {
