@@ -89,18 +89,19 @@ function convertBase64ImgToImage(b64String, callback) {
   imageBuffer.src = b64String;
 }
 
-var queue = [];
+var tileLoadingQueue = [];
 
 requestAnimationFrame(loadTilesNicely);
 function loadTilesNicely() {
   for (var i = 0; i < 8; i++) {
-    var load = queue.shift();
+    var load = tileLoadingQueue.shift();
     if (load) {
       load();
     }
   }
 
   if (!loaded2d) {
+    // continue to check for more tiles
     requestAnimationFrame(loadTilesNicely);
   }
 }
@@ -111,12 +112,12 @@ Tile.prototype.load = function (data, type, x, y, callback) {
   var chunk = y * 2 + x;
 
   if (_this[type][chunk]) {
-    return; // already started process of loading this chunk
+    return; // chunk already loaded or in queue
   }
 
-  _this[type][chunk] = true; // mark it as being loaded
+  _this[type][chunk] = true; // mark it as being in progress
 
-  queue.push(function () {
+  tileLoadingQueue.push(function () {
     convertBase64ImgToImage(data, function (image) {
       // process image
       bufferContext.drawImage(image, 0, 0);
@@ -300,6 +301,7 @@ function loadTilesForAxis(axis, startingTile, callback) {
   });
 }
 
+// get tiles around the starting tile
 function getStartingTiles(realTileNum, bundleSize, volId, chunk, axis, type, callback) {
   var chunkTile = realTileNum % CHUNK_SIZE;
   var chunkZ = Math.floor(realTileNum / CHUNK_SIZE);
@@ -316,6 +318,7 @@ function getStartingTiles(realTileNum, bundleSize, volId, chunk, axis, type, cal
   });
 }
 
+// load all the tiles
 function getImagesForVolXY(volId, chunk, axis, type, callback) {
   var url = "http://cache.eyewire.org/volume/" + volId + "/chunk/0/" + chunk[0] + "/" + chunk[1] + "/" + chunk[2] + "/tile/" + axis + "/" + 0 + ":" + CHUNK_SIZE;
   $.get(url).done(function (tilesRes) {
@@ -326,8 +329,6 @@ function getImagesForVolXY(volId, chunk, axis, type, callback) {
     }
   });
 }
-
-
 
 
 
