@@ -1,7 +1,6 @@
 // globals
 var assignedTask = null;
 var channelContext = null;
-var segmentContext = null;
 var bufferContext = null;
 
 
@@ -19,9 +18,8 @@ var CHUNKS = [
   [1,1,1]
 ];
 
-function setContexts(channel, segment, buffer) {
+function setContexts(channel, buffer) {
   channelContext = channel;
-  segmentContext = segment;
   bufferContext = buffer;
 }
 
@@ -43,7 +41,7 @@ function isSelected(segId) {
 }
 
 function isConsensus(segId) {
-  return assignedTask.consensus && assignedTask.consensus.indexOf(segId) !== -1;
+  return assignedTask.consensus.indexOf(segId) !== -1;
 }
 
 function clamp(val, min, max) {
@@ -132,7 +130,6 @@ Tile.prototype.load = function (data, type, x, y, callback) {
 };
 
 Tile.prototype.draw = function () {
-
   plane.position.z = -0.5 + (currentTile / 256);
   ThreeDViewRender();
 
@@ -152,58 +149,8 @@ Tile.prototype.draw = function () {
       x * CHUNK_SIZE,
       y * CHUNK_SIZE
     );
-
-    segmentContext.putImageData(
-      highlight(segData, segData),
-      x * CHUNK_SIZE,
-      y * CHUNK_SIZE
-    );
   }
 };
-
-Tile.prototype.segIdForPosition = function(x, y) {
-  var chunkX = Math.floor(x / CHUNK_SIZE);
-  var chunkY = Math.floor(y / CHUNK_SIZE);
-  var chunkRelX = x % CHUNK_SIZE;
-  var chunkRelY = y % CHUNK_SIZE;
-  var data = this.segmentation[chunkY * 2 + chunkX].data;
-  var start = (chunkRelY * CHUNK_SIZE + chunkRelX) * 4;
-  var rgb = [data[start], data[start+1], data[start+2]];
-  return rgbToSegId(rgb);
-};
-
-// image operations
-
-// perform the 2d and 3d interactions when selecting a segment
-// by default, this will toggle the highlighting of the segment in 2d view,
-// the visibility of the segment in 3d view, and the presence of the segment in the selected list (for submission)
-
-function selectSegId(segId) {
-  assignedTask.selected.push(segId);
-
-  assignedTask.tiles[currentTile].draw();
-  displayMeshForVolumeAndSegId(assignedTask.segmentation_id, segId);
-}
-
-function unselectSegId(segId) {
-  var selectedIdx = assignedTask.selected.indexOf(segId);
-  assignedTask.selected.splice(selectedIdx, 1);
-
-  assignedTask.tiles[currentTile].draw();
-  THREEDViewRemoveSegment(segId);
-}
-
-function toggleSegId(segId) {
-  if (segId === 0 || isSeed(segId)) {
-    return; // it a segment border or a seed
-  }
-
-  if (isSelected(segId)) {
-    unselectSegId(segId);
-  } else {
-    selectSegId(segId);
-  }
-}
 
 // highlight the seeds and selected segments in the tile 2d view
 function highlight(targetData, segData) {
@@ -215,20 +162,18 @@ function highlight(targetData, segData) {
 
   var selected = assignedTask.selected.slice(0);
 
-  if (assignedTask.consensus) {
-    var badSelected = [];
+  var badSelected = [];
 
-    for (var i = selected.length - 1; i >= 0; i--) {
-      var segment = selected[i];
+  for (var i = selected.length - 1; i >= 0; i--) {
+    var segment = selected[i];
 
-      if (assignedTask.consensus.indexOf(segment) === -1) {
-        selected.splice(i, 1);
-        badSelected.push(segment);
-      }
+    if (!isConsensus(segment)) {
+      selected.splice(i, 1);
+      badSelected.push(segment);
     }
-
-    var badSelectedColors = badSelected.map(segIdToRGB);
   }
+
+  var badSelectedColors = badSelected.map(segIdToRGB);
 
   var selectedColors = selected.map(segIdToRGB);
   var seedColors = assignedTask.seeds.map(segIdToRGB);
@@ -264,7 +209,7 @@ function highlight(targetData, segData) {
       }
     }
 
-    if (assignedTask.consensus) {
+    if (showingBadSegments) {
       for (var k = 0; k < badSelected.length; k += 1) {
         if (rgbEqual(badSelectedColors[k], rgb)) {
           setColor(copyPixels, j, badColor);
@@ -274,6 +219,80 @@ function highlight(targetData, segData) {
   }
 
   return copy;
+}
+
+Tile.prototype.segIdForPosition = function(x, y) {
+  var chunkX = Math.floor(x / CHUNK_SIZE);
+  var chunkY = Math.floor(y / CHUNK_SIZE);
+  var chunkRelX = x % CHUNK_SIZE;
+  var chunkRelY = y % CHUNK_SIZE;
+  var data = this.segmentation[chunkY * 2 + chunkX].data;
+  var start = (chunkRelY * CHUNK_SIZE + chunkRelX) * 4;
+  var rgb = [data[start], data[start+1], data[start+2]];
+  return rgbToSegId(rgb);
+};
+
+// image operations
+
+// perform the 2d and 3d interactions when selecting a segment
+// by default, this will toggle the highlighting of the segment in 2d view,
+// the visibility of the segment in 3d view, and the presence of the segment in the selected list (for submission)
+
+function selectSegId(segId) {
+  assignedTask.selected.push(segId);
+  assignedTask.tiles[currentTile].draw();
+  displayMeshForVolumeAndSegId(assignedTask.segmentation_id, segId);
+}
+
+function deselectSegId(segId) {
+  var selectedIdx = assignedTask.selected.indexOf(segId);
+  assignedTask.selected.splice(selectedIdx, 1);
+
+  assignedTask.tiles[currentTile].draw();
+  THREEDViewRemoveSegment(segId);
+}
+
+function toggleSegId(segId) {
+  if (segId === 0 || isSeed(segId)) {
+    return; // it a segment border or a seed
+  }
+
+  if (isSelected(segId)) {
+    return;
+  }
+
+  selectSegId(segId);
+
+  if (isConsensus(segId)) {
+    assignedTask.progress++;
+  } else {
+    flashSegment(segId, 2000);
+  }
+
+  $('#progress').html("Progress: " + assignedTask.progress + '/' + assignedTask.consensus.length);
+}
+
+var flashInterval = null;
+var showingBadSegments = false;
+var killFlash = null;
+
+function flashSegment(segId, duration) {
+  if (!flashInterval) {
+    flashInterval = setInterval(function () {
+      showingBadSegments = !showingBadSegments;
+      assignedTask.tiles[currentTile].draw();
+    }, 400);
+  }
+
+  clearTimeout(killFlash);
+  killFlash = setTimeout(function () {
+    clearInterval(flashInterval);
+    flashInterval = null;
+  }, duration);
+
+  setTimeout(function () {
+    deselectSegId(segId);
+  }, duration);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,7 +352,6 @@ function getImagesForVolXY(volId, chunk, axis, type, callback) {
 
 
 var channelCanvas = document.getElementById("channelCanvas");
-var segCanvas = document.getElementById("segCanvas");
 var bufferCanvas = document.getElementById("bufferCanvas");
 
 var mouseX = 0, mouseY = 0;
@@ -345,7 +363,6 @@ channelCanvas.onselectstart = function () { return false; };
 
 setContexts(
   channelCanvas.getContext("2d"),
-  segCanvas.getContext("2d"),
   bufferCanvas.getContext("2d")
 );
 
@@ -449,8 +466,12 @@ function register2dInteractions() {
     var relX = e.pageX - parentOffset.left;
     var relY = e.pageY - parentOffset.top;
 
-    var segId = assignedTask.tiles[currentTile].segIdForPosition(relX, relY);
-    toggleSegId(segId);
+    var tile = assignedTask.tiles[currentTile];
+
+    if (tile.isComplete()) {
+      var segId = tile.segIdForPosition(relX, relY);
+      toggleSegId(segId);
+    }
   });
 }
 
@@ -667,7 +688,10 @@ function start() {
   var task = {"id":1467,"seeds":[3501,3546,3549,3617],"cell_id":5,"channel_id":7055,"segmentation_id":13700,"bounds":{"min":{"x":2258,"y":15058,"z":882},"max":{"x":2514,"y":15314,"z":1138}}};
   task.consensus = [3501,3546,3549,3617,3733,3952,4017,4020,4065,4066,4068,4152,4180,4293,4715,4885,4940,4959,4974,5005,5006,5007,5029,5106,5137,5155,5169,5187,5223,5225,5226,5251,5281,5298,5299];
   task.startingTile = 161;
+  task.progress = 0;
 
   playTask(task);
+
+  $('#progress').html("Progress: " + task.progress + '/' + task.consensus.length);
 }
 start();
