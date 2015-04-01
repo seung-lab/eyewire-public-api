@@ -309,7 +309,7 @@ function getStartingTiles(realTileNum, bundleSize, volId, chunk, axis, type, cal
 
   $.get(url).done(function (tilesRes) {
     for (var trIdx = 0; trIdx < tilesRes.length; trIdx++) {
-      var realTileNum = range[0] + trIdx;
+      var realTileNum = chunkZ * CHUNK_SIZE + range[0] + trIdx;
 
       assignedTask.tiles[realTileNum].load(tilesRes[trIdx].data, type, chunk[0], chunk[1], callback);
     }
