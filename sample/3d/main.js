@@ -489,9 +489,14 @@ var renderer = new THREE.WebGLRenderer({
 renderer.setDepthTest(false);
 scene = new THREE.Scene();
 setScene();
-renderer.setSize( 500, 500 );
+var threeDContainer = $('#3dContainer');
+console.log(threeDContainer.width());
 
-$('#3dContainer').html(renderer.domElement);
+console.log(threeDContainer.height());
+
+renderer.setSize(threeDContainer.width(), threeDContainer.height());
+
+threeDContainer.html(renderer.domElement);
 
 // THREEJS objects
 var scene, camera, light, segments, cube, center, plane;
