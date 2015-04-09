@@ -22,7 +22,7 @@ For an assigned task, several different data formats are available to help playe
 
 EyeWire uses both 2d and 3d data. All of our data is constructed from electron microscope images. Our artificial intelligence analyzes the raw images to divide the tissue into smaller pieces called segments that clearly belong to the same neuron. Segments can range drastically in size.
 
-We can view these segments via 2d segmentation images and 3d meshes. The 3d meshes are available in two formats, VAO (efficient memory wise), and Wavefront obj files (ubiquitous and supported by both Unity and Unreal game engines).
+We can view these segments via 2d segmentation images and 3d meshes. The 3d meshes are available in VAO (efficient), which can be converted to Wavefront obj files (ubiquitous and easily supported by many programs such as Unity and Unreal game engines).
 
 #### Raw image data, also known as channel images (.jpg)
 
@@ -30,11 +30,11 @@ We can view these segments via 2d segmentation images and 3d meshes. The 3d mesh
 
 #### Segmentation images (.png)
 
-![segmentation image](/docs/assets/segmentation_1.png)
+![segmentation image 1](/docs/assets/segmentation_1.png)
 
 ##### selecting an additional segment
 
-![segmentation image](/docs/assets/segmentation_2.png)
+![segmentation image 2](/docs/assets/segmentation_2.png)
 
 
 ##### calculating segment ids
@@ -74,4 +74,4 @@ Once a player has finalized their list of segments, they can submit the list to 
 
 ### Where to go from here?
 
-Check out the beginner docs, the sample apps, and the full api documentation.
+Check out the beginner docs, the sample app, and the full api documentation.
