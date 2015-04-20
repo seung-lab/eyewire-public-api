@@ -118,7 +118,7 @@ Redirect the end user to this authentication request url to kick off the process
 |:-------------|:-------------------------------------------------------|
 | response_type| always 'code' |
 | redirect_uri | url that your user should be redirected to. Must match the uri specified when you registered your application.
-| client_id    | Your client IDs can be found at [https://beta.eyewire.org/oauth2/1.0/clients/]
+| client_id    | Your client IDs can be found at https://beta.eyewire.org/oauth2/1.0/clients/
 
 ### Response:
 User will be redirected to the endpoint specified by the redirect_uri with the auth code in the query parameter.
