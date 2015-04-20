@@ -46,8 +46,8 @@ The EyeWire dataset comprises pairs of .jpg and .png images from which we can ma
 - `segmentation`
     - a set of 24bpp RGB .png files for normal `tasks`
     - used to describe which pixels belong to which `segment` ID
-    - The RGB color represents the `segment` ID: R + 256*G + 256^2 * B 
-- `voxel` 
+    - The RGB color represents the `segment` ID: R + 256*G + 256^2 * B
+- `voxel`
     - The highest precision of the dataset. Can be considered a 1x1x1 pixel cube.
 - `volume`
     - a 256^3 voxel cube
@@ -97,10 +97,11 @@ We use Oauth2 to allow EyeWire player's to share access to their account with yo
 ## Registering an application
 An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens.
 
-1. Login or register at beta.eyewire.org
-2. Visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
-3. Enter an app name and a redirect uri and click save.
-4. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
+1. Register an EyeWire account at beta.eyewire.org
+2. Login to the API via https://beta.eyewire.org/2.0/account/login?username=EDITUSERNAME&password=EDITPASS using the credentials of your EyeWire account.
+3. Visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
+4. Enter an app name and a redirect uri and click save.
+5. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
 
 ## Getting access tokens
 To get an access token for a user, redirect them to [oauth2/1.0/auth](#get-oauth210auth) endpoint as detailed below.
@@ -197,16 +198,18 @@ The response contains volume objects that contain ids and bounds which are used 
 |:----------------|:------------------------------------|
 | id              | task id                             |
 | seeds           | array of segment ids known to be part of the cell.               |
-| cell | the ID of the cell that the task belongs to |
-| channel      | channel [volume object](#volume-object)      |
-| segmentation | segmentation [volume object](#volume-object) |
+| cell_id` | the ID of the cell that the task belongs to |
+| channel_id      | `channel` id      |
+| segmentation_id | `segmentation` id |
 
 ### Error Responses
 - 404 - no tasks available that fulfill the request, try with a different cell_id or lack of one.
 
 ### Example Request
 
-https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
+```
+$ curl --data 'cell_id=450' https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
+```
 
 ### Example Response
 
@@ -215,34 +218,18 @@ https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
   "id": 17444,
   "seeds": [245, 5025, 6500],
   "cell": 10,
-  "channel": {
-    "id": 63200,
-    "bounds": {
-      "min": {
-        "x": 2930,
-        "y": 4082,
-        "z": 6482
-      },
-      "max": {
-        "x": 3186,
-        "y": 4338,
-        "z": 6738
-      }
-    }
-  },
-  "segmentation":{
-    "id": 63201,
-    "bounds": {
-      "min": {
-        "x": 2930,
-        "y": 4082,
-        "z": 6482
-      },
-      "max": {
-        "x": 3186,
-        "y": 4338,
-        "z": 6738
-      }
+  "channel_id": 63200,
+  "segmentation_id": 63201,
+  "bounds": {
+    "min": {
+      "x": 2930,
+      "y": 4082,
+      "z": 6482
+    },
+    "max": {
+      "x": 3186,
+      "y": 4338,
+      "z": 6738
     }
   }
 }
@@ -270,10 +257,11 @@ Submit a validation for a task. The validation is used to calculate a consensus 
 | special     | 'scythe', 'reaped', null                                                |
 
 ### Error Responses
-None, is this correct?
 
-### Example Request
-https://beta.eyewire.org/2.0/tasks/530321/save?access_token=d14fa82ab88beb6e36fb9f88fa95fed4402a5779&status=finished&segments=170,224,306,296
+### Example request
+```
+$ curl --data 'status=finished&segments=1407,1880,3898,4506,4722,5028,5075,5444,3614,3888,4072,1540' https://beta.eyewire.org/2.0/tasks/563914/submit?access_token=d14fa82ab
+```
 
 ### Example Response
 
@@ -306,7 +294,7 @@ An array of
 |:----------------|:--------------------------------------|
 | data | a base64 encoded jpeg for channel volumes or base 64 encoded png for segmentation volumes |
 | view | id correlating to a plane, 1: XY plane, 2: XZ plane, 3: ZY plane |
-| bounds | [bounds object](#bounds-object), same bounds as the volume. |
+| bounds | [bounds object](#bounds-object) |
 
 ### Example Request
 http://data.eyewire.org/volume/63200/chunk/0/0/0/0/tile/xy/10:30
@@ -379,29 +367,6 @@ http://data.eyewire.org/volume/17096/chunk/0/1/1/0/mesh/2060
 
 
 # Response Objects
-
-## Volume Object
-| Name            | Description                           |
-|:----------------|:--------------------------------------|
-| id | Volume ID |
-| bounds | A [bounds object](#bounds-object), represents the area of space that the volume occupies |
-
-### Example
-```json
-"id": 63200,
-"bounds": {
-  "min": {
-    "x": 2930,
-    "y": 4082,
-    "z": 6482
-  },
-  "max": {
-    "x": 3186,
-    "y": 4338,
-    "z": 6738
-  }
-}
-```
 
 ## Bounds Object
 
