@@ -95,12 +95,12 @@ Providing the user with `seeds` for a `cell` is called assigning the player a `t
 We use Oauth2 to allow EyeWire player's to share access to their account with your applications. To get an Oauth2 access token you must register an application.
 
 ## Registering an application
-An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens.
+An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens. This process is necessary to configure your application, and only has to be performed once.
 
-1. Register an EyeWire account at beta.eyewire.org
+1. Register a personal EyeWire user account at beta.eyewire.org
 2. Login to the API via https://beta.eyewire.org/2.0/account/login?username=EDITUSERNAME&password=EDITPASS using the credentials of your EyeWire account.
 3. Visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
-4. Enter an app name and a redirect uri and click save.
+4. Enter an app name and a redirect uri and click save. All urls should begin with a protocol such as 'http://' or 'https://'.
 5. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
 
 ## Getting access tokens
@@ -117,8 +117,8 @@ Redirect the end user to this authentication request url to kick off the process
 | Name         | Description                                            |
 |:-------------|:-------------------------------------------------------|
 | response_type| always 'code' |
-| redirect_uri | client redirect_uri                                    |
-| client_id    | client id                                              |
+| redirect_uri | url that your user should be redirected to. Must match the uri specified when you registered your application.
+| client_id    | Your client IDs can be found at [https://beta.eyewire.org/oauth2/1.0/clients/]
 
 ### Response:
 User will be redirected to the endpoint specified by the redirect_uri with the auth code in the query parameter.
