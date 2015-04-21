@@ -164,7 +164,9 @@ Returns an access code given an auth code. One time use, the auth code is invali
 
 ### Example Request
 
-https://beta.eyewire.org/oauth2/1.0/exchange?auth_code=f9u12m12e9we&redirect_uri=http://website.com&client_id=141&secret=1234&grant_type=authorization_code
+```
+$ curl --data 'auth_code=f9u12m12e9we&secret=1234&redirect_uri=http://website.com&client_id=1&grant_type=authorization_code' https://beta.eyewire.org/oauth2/1.0/exchange
+```
 
 ### Example Response
 
