@@ -1,8 +1,10 @@
+(function (window) {
+"use strict";
+
 // globals
 var assignedTask = null;
 var channelContext = null;
 var bufferContext = null;
-
 
 // constants
 var CHUNK_SIZE = 128;
@@ -62,6 +64,9 @@ function segIdToRGB(segId) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// classes
+
+// Tile represents a single 2d 256x256 slice
+// since chunks are 128x128, a tile consists of 4 segments and 4 channel iamges.
 function Tile(id) {
   this.id = id;
   this.count = 0;
@@ -70,9 +75,10 @@ function Tile(id) {
 }
 
 Tile.prototype.isComplete = function () {
-  return this.count === 8; // 4 channel, 4 segmentation
+  return this.count === 8; // 4 channel + 4 segmentation
 };
 
+// the EyeWire dat server returns base 64 strings which need to be converted to javascript images.
 function convertBase64ImgToImage(b64String, callback) {
   var imageBuffer = new Image();
 
@@ -83,6 +89,9 @@ function convertBase64ImgToImage(b64String, callback) {
   imageBuffer.src = b64String;
 }
 
+// loads all the segmentation and channel images for this tile
+// and runs the callback when complete
+// tiles are queued for loading to throttle the rate.
 Tile.prototype.load = function (data, type, x, y, callback) {
   var _this = this;
 
@@ -110,16 +119,16 @@ Tile.prototype.load = function (data, type, x, y, callback) {
 
 // draw this tile in the 2d view and update the plane position in the 3d view
 Tile.prototype.draw = function () {
-  plane.position.z = -0.5 + (currentTile / 256);
+  if (!this.isComplete()) {
+    return;
+  }
+
+  plane.position.z = -0.5 + (currentTile / (CHUNK_SIZE * 2));
   ThreeDViewRender();
 
   for (var i = 0; i < 4; i++) {
     var x = i % 2;
     var y = i < 2 ? 0 : 1;
-
-    if (!this.isComplete()) {
-      return;
-    }
 
     var segData = this.segmentation[i];
     var targetData = this.channel[i];
@@ -133,7 +142,9 @@ Tile.prototype.draw = function () {
 };
 
 // highlight the seeds and selected segments in the tile 2d view
+// returns a new image buffer
 function highlight(targetData, segData) {
+  // copy is a working buffer to add highlights without modifying the original tile data
   var copy = bufferContext.createImageData(CHUNK_SIZE, CHUNK_SIZE);
   copy.data.set(targetData.data);
 
@@ -145,33 +156,38 @@ function highlight(targetData, segData) {
   var selectedColors = selected.map(segIdToRGB);
   var seedColors = assignedTask.seeds.map(segIdToRGB);
 
+  // get the color for a pixel in the given buffer
   function getColor(buffer, startIndex) {
     return [buffer[startIndex], buffer[startIndex+1], buffer[startIndex+2]];
   }
 
-  function setColor(buffer, startIndex, rgb) {
-    overlay = [rgb[0] * 0.5, rgb[1] * 0.5, rgb[2] * 0.5];
+  // highlights the pixel with the given rgb and alpha
+  function setColorAlpha(buffer, startIndex, rgb, alpha) {
+    var overlayColor = [rgb[0] * alpha, rgb[1] * alpha, rgb[2] * alpha];
 
-    for (i = 0; i < 3; i++) {
-      buffer[startIndex + i] = overlay[i] + buffer[startIndex + i] * 0.5;
+    for (var i = 0; i < 3; i++) {
+      buffer[startIndex + i] = overlayColor[i] + buffer[startIndex + i] * (1 - alpha);
     }
   }
 
   var seedColor = [0, 0, 255];
   var selectedColor = [0, 255, 0];
 
+  // loop through all the pixels
   for (var j = 0; j < segPixels.length; j += 4) {
     var rgb = getColor(segPixels, j);
 
+    // is the current pixel part of selected segment? if so highlight it
     for (var k = 0; k < seedColors.length; k += 1) {
       if (rgbEqual(seedColors[k], rgb)) {
-        setColor(copyPixels, j, seedColor);
+        setColorAlpha(copyPixels, j, seedColor, 0.5);
       }
     }
 
+    // is the current pixel part of selected segment? if so highlight it
     for (var k = 0; k < selectedColors.length; k += 1) {
       if (rgbEqual(selectedColors[k], rgb)) {
-        setColor(copyPixels, j, selectedColor);
+        setColorAlpha(copyPixels, j, selectedColor, 0.5);
       }
     }
   }
@@ -337,10 +353,10 @@ var renderer = new THREE.WebGLRenderer({
 renderer.setDepthTest(false);
 scene = new THREE.Scene();
 setScene();
-var threeDContainer = $('#3dContainer');
+var webGLContainer = $('#webGLContainer');
 
-renderer.setSize(threeDContainer.width(), threeDContainer.height());
-threeDContainer.html(renderer.domElement);
+renderer.setSize(webGLContainer.width(), webGLContainer.height());
+webGLContainer.html(renderer.domElement);
 
 // THREEJS objects
 var scene, camera, light, segments, cube, center, plane;
@@ -374,7 +390,7 @@ function setScene() {
   cube = new THREE.BoxHelper( mesh );
   cube.material.color.set( 0x555555 );
 
-  viewport = new THREE.Object3D();
+  var viewport = new THREE.Object3D();
   segments = new THREE.Object3D();
 
   light = new THREE.DirectionalLight(0xffffff);
@@ -395,7 +411,7 @@ function setScene() {
   scene.add(camera);
 }
 
-$("#3dContainer canvas").mousemove(function (e) {
+$("#webGLContainer canvas").mousemove(function (e) {
   var jThis = $(this);
   var parentOffset = jThis.offset();
   var relX = e.pageX - parentOffset.left;
@@ -410,7 +426,7 @@ $("#3dContainer canvas").mousemove(function (e) {
 var animating = false;
 var canvasHasFocus = false;
 
-$("#3dContainer canvas").mouseenter(function (e) {
+$("#webGLContainer canvas").mouseenter(function (e) {
   canvasHasFocus = true;
   if (!animating) {
     animating = true;
@@ -540,6 +556,9 @@ function getMeshForVolumeXYZAndSegId(volume, chunk, segId, done) {
 
 
 // start game
+
+
+// waits for all async functions to call a ca
 function waitForAll(asyncFunctions, done) {
   var count = asyncFunctions.length;
 
@@ -556,6 +575,7 @@ function waitForAll(asyncFunctions, done) {
 
 
 var currentTile;
+var loadedStartingTile = false;
 var tileLoadingQueue = [];
 
 // load all the tiles for the assigned task
@@ -589,6 +609,8 @@ function loadTiles(done) {
       $('#channelCanvas').show();
 
       register2dInteractions();
+    } else if (tile.id === currentTile) {
+      tile.draw();
     }
 
     if (tileCount === 256) {
@@ -611,6 +633,7 @@ function loadSeedMeshes(done) {
   });
 }
 
+// loads all task data and calls done handler when both are complete
 function loadTaskData(done) {
   waitForAll([
     loadTiles,
@@ -631,10 +654,11 @@ function playTask(task) {
     console.log('we are done loading!');
     clearInterval(loadingIndicator);
     $('#loadingText').hide();
-    $('#3dContainer').show();
+    webGLContainer.show();
 
+    // enable the submit task button
     $('#submitTask').click(function () {
-      var url = 'https://beta.eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
+      var url = 'https://eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
       $.post(url, 'status=finished&segments=' + assignedTask.selected.join()).done(function (res) {
         $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer);
       });
@@ -642,7 +666,11 @@ function playTask(task) {
   });
 }
 
+
+// kick off the game
 function start() {
-  $.post('https://beta.eyewire.org/2.0/tasks/testassign').done(playTask);
+  $.post('https://eyewire.org/2.0/tasks/testassign').done(playTask);
 }
 start();
+
+}(window))

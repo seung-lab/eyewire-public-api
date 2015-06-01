@@ -8,18 +8,15 @@
 <body>
 	<div id="loadingText" style="font-size: 24px; display: none;">Loading </div>
 	<br/>
-	<div id="instructions" style="font-size: 24px;">w = up, s = down, click on 2d image to select and deselect segments, hover mouse over 3d view to change viewing angle</div>
-	<br/>
+	<div id="instructions">w = up, s = down, click on 2d image to select and deselect segments, hover mouse over 3d view to change viewing angle</div>
+	<canvas id="channelCanvas" style="display: none;" width="256" height="256"></canvas>
+	<canvas id="bufferCanvas" style="display: none;"  width="128" height="128"></canvas>
+	<div id="webGLContainer" style="width: 500px; height: 500px;"></div>
 
 	<div id="finishedLoading">
 		<button id="submitTask">Submit</button><br/>
 		<div id="results"></div>
 	</div>
-
-	<canvas id="channelCanvas" style="display: none;" width="256" height="256"></canvas>
-	<canvas id="bufferCanvas" style="display: none;"  width="128" height="128"></canvas>
-
-	<div id="3dContainer" style="width: 500px; height: 500px;"></div>
 </body>
 <script src="main.js"></script>
 </html>
