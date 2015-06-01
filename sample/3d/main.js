@@ -78,7 +78,7 @@ Tile.prototype.isComplete = function () {
   return this.count === 8; // 4 channel + 4 segmentation
 };
 
-// the EyeWire dat server returns base 64 strings which need to be converted to javascript images.
+// the EyeWire data server returns base 64 strings which need to be converted to javascript images.
 function convertBase64ImgToImage(b64String, callback) {
   var imageBuffer = new Image();
 
