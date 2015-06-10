@@ -98,10 +98,9 @@ We use Oauth2 to allow EyeWire player's to share access to their account with yo
 An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens. This process is necessary to configure your application, and only has to be performed once.
 
 1. Register a personal EyeWire user account at beta.eyewire.org
-2. Login to the API via https://beta.eyewire.org/2.0/account/login?username=EDITUSERNAME&password=EDITPASS using the credentials of your EyeWire account.
-3. Visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
-4. Enter an app name and a redirect uri and click save. All urls should begin with a protocol such as 'http://' or 'https://'.
-5. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
+2. Login to EyeWire and visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
+3. Enter an app name and a redirect uri and click save. All urls should begin with a protocol such as 'http://' or 'https://'.
+4. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
 
 ## Getting access tokens
 To get an access token for a user, redirect them to [oauth2/1.0/auth](#get-oauth210auth) endpoint as detailed below.
