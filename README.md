@@ -13,7 +13,7 @@ This is a draft, the api is available to try at https://beta-tasking.eyewire.org
 - [Oauth2](#oauth2)
   - [Registering an application](#registering-an-application)
   - [Getting access tokens](#getting-access-tokens)
-  - [GET oauth2/1.0/auth](#get-oauth210auth)
+  - [GET https://beta.eyewire.org/oauth2/1.0/auth](#get-httpsbetaeyewireorgoauth210auth)
   - [POST oauth2/1.0/exchange](#post-oauth210exchange)
 - [Tasks](#tasks)
   - [POST 1.0/tasks/assign](#post-10tasksassign)
@@ -103,12 +103,12 @@ An application requires a name and a redirection endpoint which is a url where y
 4. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
 
 ## Getting access tokens
-To get an access token for a user, redirect them to [oauth2/1.0/auth](#get-oauth210auth) endpoint as detailed below.
+To get an access token for a user, redirect them to [https://beta.eyewire.org/oauth2/1.0/auth](#get-httpsbetaeyewireorgoauth210auth) endpoint as detailed below.
 
 After the user logs in and accepts your request, the user will be redirected to the redirection endpoint along with an auth code. You then use the [oauth2/1.0/exchange](#get-oauth210exchange) endpoint to receive an access token.
 
 
-## GET oauth2/1.0/auth
+## GET https://beta.eyewire.org/oauth2/1.0/auth
 
 Redirect the end user to this authentication request url to kick off the process of receiving an access token.
 
