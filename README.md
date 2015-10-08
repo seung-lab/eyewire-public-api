@@ -1,5 +1,5 @@
 #Eyewire Public API - WIP
-This is a draft, the api is available to try at https://beta.eyewire.org
+This is a draft, the api is available to try at https://beta-tasking.eyewire.org
 
 # Table of Contents
 <!-- MarkdownTOC autolink=true bracket=round -->
@@ -16,8 +16,8 @@ This is a draft, the api is available to try at https://beta.eyewire.org
   - [GET oauth2/1.0/auth](#get-oauth210auth)
   - [POST oauth2/1.0/exchange](#post-oauth210exchange)
 - [Tasks](#tasks)
-  - [POST 2.0/tasks/assign](#post-20tasksassign)
-  - [POST 2.0/tasks/:id/save](#post-20tasksidsave)
+  - [POST 1.0/tasks/assign](#post-10tasksassign)
+  - [POST 1.0/tasks/:id/save](#post-10tasksidsave)
 - [Data](#data)
 - [Response Objects](#response-objects)
   - [Volume Object](#volume-object)
@@ -30,7 +30,7 @@ This is a draft, the api is available to try at https://beta.eyewire.org
 
 [EyeWire](https://eyewire.org/) is a game to map the brain. Players from around the world collectively analyze the retina to determine the three dimensional structure of neurons. Players map neurons by solving 3D puzzles. They scroll through volumes of stacked microscope images and select 3D segments that extend a seed piece either to the other side of a cube or to a termination. Players decide which segment to add by "coloring inside the lines"  on a 2D cross section of the volume.
 
-The EyeWire REST API provides programmatic access to interact with EyeWire's data. The key api interactions are [assigning tasks](#post-20tasksassign) and [submitting validations](#post-20tasksidsave). Assignments and submissions must have an associated user account and application id. That information is passed to the api as an Oauth2 access token query parameter.
+The EyeWire REST API provides programmatic access to interact with EyeWire's data. The key api interactions are [assigning tasks](#post-10tasksassign) and [submitting validations](#post-10tasksidsave). Assignments and submissions must have an associated user account and application id. That information is passed to the api as an Oauth2 access token query parameter.
 
 # Definitions
 - Oauth2 - [open standard for authorization](http://oauth.net/2/). We support only three-legged authentication. See [our Oauth2 implementation](#oauth2) for more details.
@@ -98,7 +98,7 @@ We use Oauth2 to allow EyeWire player's to share access to their account with yo
 An application requires a name and a redirection endpoint which is a url where you will receive auth codes and exchange them for access tokens. This process is necessary to configure your application, and only has to be performed once.
 
 1. Register a personal EyeWire user account at beta.eyewire.org
-2. Login to EyeWire and visit https://beta.eyewire.org/oauth2/1.0/clients and click 'Create new client'
+2. Login to Beta EyeWire and visit https://beta-tasking.eyewire.org/oauth2/1.0/clients and click 'Create new client'
 3. Enter an app name and a redirect uri and click save. All urls should begin with a protocol such as 'http://' or 'https://'.
 4. You will be redirected to the client details screen containing the client id and secret along with the abilities to edit and delete the client.
 
@@ -117,7 +117,7 @@ Redirect the end user to this authentication request url to kick off the process
 |:-------------|:-------------------------------------------------------|
 | response_type| always 'code' |
 | redirect_uri | url that your user should be redirected to. Must match the uri specified when you registered your application.
-| client_id    | Your client IDs can be found at https://beta.eyewire.org/oauth2/1.0/clients/
+| client_id    | Your client IDs can be found at https://beta-tasking.eyewire.org/oauth2/1.0/clients/
 
 ### Response:
 User will be redirected to the endpoint specified by the redirect_uri with the auth code in the query parameter.
@@ -144,10 +144,10 @@ Returns an access code given an auth code. One time use, the auth code is invali
 ### Request
 | Name         | Description                                            |
 |:-------------|:-------------------------------------------------------|
-| auth_code    | auth code returned by the end user to the redirect_uri |
-| secret       | client secret                                          |
-| redirect_uri | client redirect_uri                                    |
+| code    | auth code returned by the end user to the redirect_uri |
 | client_id    | client id                                              |
+| client_secret       | client secret                                          |
+| redirect_uri | client redirect_uri                                    |
 | grant_type | always 'authorization_code'
 
 ### Response 200
@@ -164,7 +164,7 @@ Returns an access code given an auth code. One time use, the auth code is invali
 ### Example Request
 
 ```
-$ curl --data 'auth_code=f9u12m12e9we&secret=1234&redirect_uri=http://website.com&client_id=1&grant_type=authorization_code' https://beta.eyewire.org/oauth2/1.0/exchange
+$ curl --data 'auth_code=f9u12m12e9we&secret=1234&redirect_uri=http://website.com&client_id=1&grant_type=authorization_code' https://beta-tasking.eyewire.org/oauth2/1.0/exchange
 ```
 
 ### Example Response
@@ -180,7 +180,7 @@ $ curl --data 'auth_code=f9u12m12e9we&secret=1234&redirect_uri=http://website.co
 
 The task API is the one you'll be interacting with the most. It's used to assign tasks and submit player evaluations of them called validations. Each task consists of a set of image data and a seed piece. Each validation consists of the seed piece plus any segments the player selects. We aggregate submitted validations to form a consensus opinion of the actual structure of the cell.
 
-## POST 2.0/tasks/assign
+## POST 1.0/tasks/assign
 
 Assigns a task to a user. You may optionally request that the task belongs to a specific cell.
 
@@ -199,9 +199,11 @@ The response contains volume objects that contain ids and bounds which are used 
 |:----------------|:------------------------------------|
 | id              | task id                             |
 | seeds           | array of segment ids known to be part of the cell.               |
-| cell_id` | the ID of the cell that the task belongs to |
+| cell_id | the ID of the cell that the task belongs to |
 | channel_id      | `channel` id      |
 | segmentation_id | `segmentation` id |
+| bounds | [bounds object](#bounds-object) representing the task volume |
+| startingTile | recommended starting tile number |
 
 ### Error Responses
 - 404 - no tasks available that fulfill the request, try with a different cell_id or lack of one.
@@ -209,7 +211,7 @@ The response contains volume objects that contain ids and bounds which are used 
 ### Example Request
 
 ```
-$ curl --data 'cell_id=450' https://beta.eyewire.org/2.0/tasks/assign?access_token=78q3ja8y
+$ curl --data 'cell_id=450' https://beta-tasking.eyewire.org/1.0/tasks/assign?access_token=78q3ja8y
 ```
 
 ### Example Response
@@ -232,11 +234,12 @@ $ curl --data 'cell_id=450' https://beta.eyewire.org/2.0/tasks/assign?access_tok
       "y": 4338,
       "z": 6738
     }
-  }
+  },
+  "startingTile" : 5
 }
 ```
 
-## POST 2.0/tasks/:id/submit
+## POST 1.0/tasks/:id/submit
 
 Submit a validation for a task. The validation is used to calculate a consensus of the segments that belong to the task. The validation will be analyzed for accuracy and given a suggested score.
 
@@ -247,31 +250,31 @@ Submit a validation for a task. The validation is used to calculate a consensus 
 | access_token    | ...                                   |
 | status          | one of finished, aborted, or training |
 | segments        | comma separated list of segment ids   |
-| reap (optional) | is this task submission a reap?       |
+| reap (optional) | is this task submission a scythe/reap?       |
 
 ### Response 200
 | Name        | Description                                                         |
 |:------------|:--------------------------------------------------------------------|
+| id | id representing the submission |
 | score       | suggested score                                                     |
-| accuracy    | estimated accuracy                                                  |
-| trailblazer | was the submission one of the first validations for a task |
-| special     | 'scythe', 'reaped', null                                                |
+| accuracy    | estimated accuracy                                               |
+| type     | one of: 'normal', 'trailblazer', 'scythed', 'reaped'                                              |
 
 ### Error Responses
 
 ### Example request
 ```
-$ curl --data 'status=finished&segments=1407,1880,3898,4506,4722,5028,5075,5444,3614,3888,4072,1540' https://beta.eyewire.org/2.0/tasks/563914/submit?access_token=d14fa82ab
+$ curl --data 'status=finished&segments=1407,1880,3898,4506,4722,5028,5075,5444,3614,3888,4072,1540' https://beta-tasking.eyewire.org/1.0/tasks/563914/submit?access_token=d14fa82ab
 ```
 
 ### Example Response
 
 ```json
 {
+  "id": 40,
   "score": 60,
   "accuracy": 0.5983492834,
-  "trailblazer": false,
-  "special": null
+  "type": "normal"
 }
 ```
 
