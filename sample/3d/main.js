@@ -650,6 +650,8 @@ function playTask(task) {
     $('#loadingText').html($('#loadingText').html() + '.');
   }, 2000);
 
+  var startTime = Date.now();
+
   loadTaskData(function () {
     console.log('we are done loading!');
     clearInterval(loadingIndicator);
@@ -658,8 +660,12 @@ function playTask(task) {
 
     // enable the submit task button
     $('#submitTask').click(function () {
-      var url = 'https://eyewire.org/2.0/tasks/' + assignedTask.id + '/testsubmit';
-      $.post(url, 'status=finished&segments=' + assignedTask.selected.join()).done(function (res) {
+      var url = 'https://tasking.eyewire.org/1.0/tasks/' + assignedTask.id + '/testsubmit';
+      $.post(url, {
+        status: 'finished',
+        segments: assignedTask.selected.join(','),
+        duration: Date.now() - startTime
+      }).done(function (res) {
         $('#results').html('score ' + res.score + ', accuracy ' + res.accuracy + ', trailblazer ' + res.trailblazer);
       });
     });
@@ -669,7 +675,7 @@ function playTask(task) {
 
 // kick off the game
 function start() {
-  $.post('https://eyewire.org/2.0/tasks/testassign').done(playTask);
+  $.post('https://tasking.eyewire.org/1.0/tasks/testassign').done(playTask);
 }
 start();
 
